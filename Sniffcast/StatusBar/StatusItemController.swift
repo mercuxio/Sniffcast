@@ -16,7 +16,7 @@ final class StatusItemController: NSObject {
     private var displaysAsleep = false
 
     private static let rotationPeriod: TimeInterval = 8
-    private static let symbolConfig = NSImage.SymbolConfiguration(pointSize: 13, weight: .medium)
+    private static let symbolConfig = NSImage.SymbolConfiguration(pointSize: 13, weight: .regular)
 
     init(state: AppState, settings: SettingsStore) {
         self.state = state
@@ -79,7 +79,7 @@ final class StatusItemController: NSObject {
             let isDot = aqiText == "●"
             let aqiFont = isDot
                 ? NSFont.systemFont(ofSize: 9)
-                : NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .semibold)
+                : NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
             var attributes: [NSAttributedString.Key: Any] = [.font: aqiFont]
             // No band means monochrome: leave the color to the button so it matches the menubar.
             if let band = content.band {
@@ -91,19 +91,18 @@ final class StatusItemController: NSObject {
         return result
     }
 
-    /// Full style: symbol, then temperature over AQI in two rows, using Squiggle's two-row
-    /// metrics (10 pt monospaced digits, each row half the bar height, centred on the font's
+    /// Two Rows style: symbol, then temperature over AQI, using Squiggle's two-row
+    /// metrics (10 pt regular monospaced digits, each row half the bar height, centred on the font's
     /// own ascent and descent). Drawn as one image because a status button has a single
     /// title line. The drawing handler runs at draw time, so `labelColor` and the band
     /// colors resolve against the menubar's current appearance.
     private static func stackedImage(for content: MenubarContent) -> NSImage {
         let barHeight = NSStatusBar.system.thickness
         let rowFont = NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .regular)
-        let aqiFont = NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .semibold)
         let symbol = NSImage(systemSymbolName: content.symbol, accessibilityDescription: nil)?
             .withSymbolConfiguration(symbolConfig)
         let top = NSAttributedString(string: content.text, attributes: [.font: rowFont])
-        let bottom = NSAttributedString(string: content.aqiText ?? "", attributes: [.font: aqiFont])
+        let bottom = NSAttributedString(string: content.aqiText ?? "", attributes: [.font: rowFont])
 
         let gap: CGFloat = 4
         let symbolSize = symbol?.size ?? .zero
@@ -121,19 +120,22 @@ final class StatusItemController: NSObject {
                 }
                 tinted.draw(in: NSRect(x: 0, y: (barHeight - symbolSize.height) / 2,
                                        width: symbolSize.width, height: symbolSize.height),
-                            from: .zero, operation: .sourceOver, fraction: alpha)
+                            from: .zero, operation: .sourceOver, fraction: alpha,
+                            // The outer image is flipped so rows stack top-down; without this the
+                            // unflipped symbol is drawn upside down.
+                            respectFlipped: true, hints: nil)
             }
             let rowHeight = barHeight / 2
             let textHeight = rowFont.ascender - rowFont.descender
             let x = ceil(symbolSize.width) + gap
-            let rows: [(String, NSFont, NSColor)] = [
-                (content.text, rowFont, .labelColor),
-                (content.aqiText ?? "", aqiFont, content.band.map(AQIColors.nsColor) ?? .labelColor),
+            let rows: [(String, NSColor)] = [
+                (content.text, .labelColor),
+                (content.aqiText ?? "", content.band.map(AQIColors.nsColor) ?? .labelColor),
             ]
-            for (index, (string, font, color)) in rows.enumerated() {
+            for (index, (string, color)) in rows.enumerated() {
                 let y = CGFloat(index) * rowHeight + (rowHeight - textHeight) / 2
                 NSAttributedString(string: string, attributes: [
-                    .font: font, .foregroundColor: color.withAlphaComponent(alpha),
+                    .font: rowFont, .foregroundColor: color.withAlphaComponent(alpha),
                 ]).draw(at: NSPoint(x: x, y: y))
             }
             return true
