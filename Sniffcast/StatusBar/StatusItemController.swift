@@ -127,16 +127,19 @@ final class StatusItemController: NSObject {
             }
             let rowHeight = barHeight / 2
             let textHeight = rowFont.ascender - rowFont.descender
-            let x = ceil(symbolSize.width) + gap
+            // Right-aligned: both rows end at the image's trailing edge, so "29°" and "219"
+            // line up on their last digit however their widths differ.
+            let trailing = size.width
             let rows: [(String, NSColor)] = [
                 (content.text, .labelColor),
                 (content.aqiText ?? "", content.band.map(AQIColors.nsColor) ?? .labelColor),
             ]
             for (index, (string, color)) in rows.enumerated() {
                 let y = CGFloat(index) * rowHeight + (rowHeight - textHeight) / 2
-                NSAttributedString(string: string, attributes: [
+                let text = NSAttributedString(string: string, attributes: [
                     .font: rowFont, .foregroundColor: color.withAlphaComponent(alpha),
-                ]).draw(at: NSPoint(x: x, y: y))
+                ])
+                text.draw(at: NSPoint(x: trailing - text.size().width, y: y))
             }
             return true
         }
