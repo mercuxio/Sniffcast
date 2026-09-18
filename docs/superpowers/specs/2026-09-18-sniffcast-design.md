@@ -10,7 +10,7 @@ Sniffcast is a macOS menubar app that shows current weather and air quality (AQI
 ### In v1
 - Menubar item with three user-selectable styles (§4).
 - Dropdown panel: current conditions, pollutant breakdown, hourly forecast (next 12 h), daily forecast (7 days) with pollen where available.
-- Location: device location via Location Services, and/or cities found by search. Multiple saved locations, switchable from the panel.
+- Location: device location via Location Services, and/or cities found by search. Multiple saved locations, switchable from the panel. **Current location is the default** — used on first launch and whenever no saved location is selected.
 - Units: °F/°C, mph/km/h, US AQI / European AQI.
 - AQI threshold notifications.
 - Launch at login.
@@ -82,10 +82,10 @@ No API key. Two requests per refresh, requesting only displayed fields:
   - `current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day`
   - `hourly=temperature_2m,weather_code` with `forecast_hours=12`
   - `daily=weather_code,temperature_2m_max,temperature_2m_min`, `forecast_days=7`
-  - `temperature_unit` / `wind_speed_unit` per settings, `timezone=auto`
+  - Always fetched in °C and km/h with `timezone=auto&timeformat=unixtime`; unit settings are applied locally, so changing units never costs a network request.
 - **Air quality** `https://air-quality-api.open-meteo.com/v1/air-quality`
   - `current=us_aqi,european_aqi,pm2_5,pm10,ozone,nitrogen_dioxide,sulphur_dioxide,carbon_monoxide`
-  - `hourly=us_aqi,european_aqi` (next 12 h) and pollen (`alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen`) over the forecast window
+  - `hourly=us_aqi,european_aqi` and pollen (`alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen`), `forecast_days=5`. Hourly data starts at local midnight, so hourly AQI is filtered to the current hour onward and joined to the forecast's 12 hours by timestamp.
   - Pollen is hourly-only and Europe-only; daily pollen = per-day max of hourly values. If all null → pollen section hidden.
 - **Geocoding** `https://geocoding-api.open-meteo.com/v1/search?name=…&count=8` for city search (debounced 300 ms, min 2 chars).
 
@@ -116,18 +116,18 @@ Both refresh requests run concurrently (`async let`). A `Snapshot` is only commi
 ## 7. Errors & edge cases
 
 - **Fetch failure:** keep last good snapshot, mark stale if age > 1.5 × refresh interval (dimmed menubar, "Updated 2 h ago" in panel). Retry with exponential backoff (2, 4, 8 min, capped at the refresh interval), scheduled via the same scheduler — no retry storms.
-- **Location denied / unavailable:** fall back to the first saved city; panel shows a one-line prompt linking to System Settings. If no saved city exists, panel shows location setup.
+- **Location denied / unavailable** (only relevant while current location is the active selection): fall back to the first saved city; panel shows a one-line prompt linking to System Settings. If no saved city exists, panel shows location setup.
 - **No AQI coverage / nulls:** menubar shows weather only for that field; panel hides empty sections.
 - **Invalid geocoding results / empty search:** inline "No matches" message.
 - **Notifications not authorized:** alert toggle shows a hint; no repeated prompts.
 
 ## 8. Settings & alerts
 
-Settings window (SwiftUI `Settings` scene, opened from the panel's gear button):
+Settings window (SwiftUI view in an AppKit-owned `NSWindow`, created on demand from the panel's gear button and released on close — `openSettings`/`SettingsLink` are unreliable from an `NSPopover`-hosted view, and a pure AppKit entry point avoids the SwiftUI `App` scene machinery):
 - Menubar style (Full / Compact / Rotating)
 - Refresh interval: 15 / 30 / 45 / 60 min (default 30). Help text notes air-quality data updates hourly, so shorter intervals mainly freshen current weather.
 - Temperature °F/°C, wind mph/km/h, AQI scale US/EU (defaults from system locale)
-- Locations: "Current location" toggle, search + add, reorder, delete
+- Locations: "Current location" is always the first entry and the default selection; search + add, reorder, delete saved cities. Deleting the selected city reverts the selection to current location.
 - AQI alert: on/off, threshold (default 100 US / 60 EU)
 - Launch at login (`SMAppService.mainApp.register()/unregister()`)
 
