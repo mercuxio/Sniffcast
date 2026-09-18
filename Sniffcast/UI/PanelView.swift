@@ -54,6 +54,7 @@ struct PanelView: View {
             }
         }
         .frame(width: 340)
+        .background(MenuMaterial().ignoresSafeArea())
     }
 
     // MARK: Header — location picker

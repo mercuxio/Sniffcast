@@ -8,6 +8,7 @@ final class SettingsStore {
     private enum Key {
         static let style = "menubarStyle", interval = "refreshInterval", temperature = "temperatureUnit"
         static let wind = "windUnit", scale = "aqiScale", alerts = "alertsEnabled", threshold = "alertThreshold"
+        static let monochrome = "aqiMonochrome"
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -23,6 +24,8 @@ final class SettingsStore {
             if oldValue != aqiScale { alertThreshold = AQIScale.defaultThreshold(aqiScale) }
         }
     }
+    /// Menubar AQI drawn in the label color instead of its band color.
+    var aqiMonochrome: Bool { didSet { defaults.set(aqiMonochrome, forKey: Key.monochrome) } }
     var alertsEnabled: Bool { didSet { defaults.set(alertsEnabled, forKey: Key.alerts) } }
     var alertThreshold: Int { didSet { defaults.set(alertThreshold, forKey: Key.threshold) } }
 
@@ -43,6 +46,7 @@ final class SettingsStore {
         windUnit = raw(Key.wind, d.wind)
         let scale = raw(Key.scale, d.scale)
         aqiScale = scale
+        aqiMonochrome = defaults.bool(forKey: Key.monochrome)
         alertsEnabled = defaults.bool(forKey: Key.alerts)
         alertThreshold = (defaults.object(forKey: Key.threshold) as? Int) ?? AQIScale.defaultThreshold(scale)
 

@@ -104,6 +104,14 @@ struct SettingsStoreTests {
         #expect(s.aqiScale == .us)
         #expect(s.alertThreshold == 100)
         #expect(!s.alertsEnabled)
+        #expect(!s.aqiMonochrome)
+    }
+
+    @Test func persistsMonochrome() {
+        let a = SettingsStore(defaults: defaults, locale: Locale(identifier: "en_US"))
+        a.aqiMonochrome = true
+        let b = SettingsStore(defaults: defaults, locale: Locale(identifier: "en_US"))
+        #expect(b.aqiMonochrome)
     }
 
     @Test func switchingScaleResetsThreshold() {

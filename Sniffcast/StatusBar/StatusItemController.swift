@@ -31,7 +31,8 @@ final class StatusItemController: NSObject {
         }
 
         Sniffcast.observe { [state, settings] in
-            (state.snapshot, state.isStale, settings.menubarStyle, settings.temperatureUnit, settings.aqiScale)
+            (state.snapshot, state.isStale, settings.menubarStyle, settings.temperatureUnit, settings.aqiScale,
+             settings.aqiMonochrome)
         } apply: { [weak self] _ in
             self?.updateRotation()
             self?.render()
@@ -46,16 +47,23 @@ final class StatusItemController: NSObject {
     private func render() {
         let content = MenubarFormatter.content(
             snapshot: state.snapshot, style: settings.menubarStyle, phase: phase,
-            temperatureUnit: settings.temperatureUnit, scale: settings.aqiScale, stale: state.isStale)
+            temperatureUnit: settings.temperatureUnit, scale: settings.aqiScale, stale: state.isStale,
+            monochrome: settings.aqiMonochrome)
         // Redraw only when the rendered output actually changes.
         guard content != lastContent, let button = item.button else { return }
         lastContent = content
 
-        button.image = NSImage(systemSymbolName: content.symbol, accessibilityDescription: nil)?
-            .withSymbolConfiguration(Self.symbolConfig)
-        button.image?.isTemplate = true
-        button.attributedTitle = Self.title(for: content)
-        button.imagePosition = content.text.isEmpty && content.aqiText == nil ? .imageOnly : .imageLeading
+        if content.stacked {
+            button.image = Self.stackedImage(for: content)
+            button.attributedTitle = NSAttributedString()
+            button.imagePosition = .imageOnly
+        } else {
+            button.image = NSImage(systemSymbolName: content.symbol, accessibilityDescription: nil)?
+                .withSymbolConfiguration(Self.symbolConfig)
+            button.image?.isTemplate = true
+            button.attributedTitle = Self.title(for: content)
+            button.imagePosition = content.text.isEmpty && content.aqiText == nil ? .imageOnly : .imageLeading
+        }
         // Dimmed, never blank, when data is stale.
         button.appearsDisabled = content.stale
         button.setAccessibilityLabel(accessibilityLabel(for: content))
@@ -67,17 +75,71 @@ final class StatusItemController: NSObject {
         if !content.text.isEmpty {
             result.append(NSAttributedString(string: " " + content.text, attributes: [.font: font]))
         }
-        if let aqiText = content.aqiText, let band = content.band {
+        if let aqiText = content.aqiText {
             let isDot = aqiText == "●"
-            let color = AQIColors.nsColor(band).withAlphaComponent(content.stale ? 0.5 : 1)
             let aqiFont = isDot
                 ? NSFont.systemFont(ofSize: 9)
                 : NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .semibold)
-            var attributes: [NSAttributedString.Key: Any] = [.font: aqiFont, .foregroundColor: color]
+            var attributes: [NSAttributedString.Key: Any] = [.font: aqiFont]
+            // No band means monochrome: leave the color to the button so it matches the menubar.
+            if let band = content.band {
+                attributes[.foregroundColor] = AQIColors.nsColor(band).withAlphaComponent(content.stale ? 0.5 : 1)
+            }
             if isDot { attributes[.baselineOffset] = 1.5 }
             result.append(NSAttributedString(string: " " + aqiText, attributes: attributes))
         }
         return result
+    }
+
+    /// Full style: symbol, then temperature over AQI in two rows, using Squiggle's two-row
+    /// metrics (10 pt monospaced digits, each row half the bar height, centred on the font's
+    /// own ascent and descent). Drawn as one image because a status button has a single
+    /// title line. The drawing handler runs at draw time, so `labelColor` and the band
+    /// colors resolve against the menubar's current appearance.
+    private static func stackedImage(for content: MenubarContent) -> NSImage {
+        let barHeight = NSStatusBar.system.thickness
+        let rowFont = NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .regular)
+        let aqiFont = NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .semibold)
+        let symbol = NSImage(systemSymbolName: content.symbol, accessibilityDescription: nil)?
+            .withSymbolConfiguration(symbolConfig)
+        let top = NSAttributedString(string: content.text, attributes: [.font: rowFont])
+        let bottom = NSAttributedString(string: content.aqiText ?? "", attributes: [.font: aqiFont])
+
+        let gap: CGFloat = 4
+        let symbolSize = symbol?.size ?? .zero
+        let textWidth = ceil(max(top.size().width, bottom.size().width))
+        let size = NSSize(width: ceil(symbolSize.width) + gap + textWidth, height: barHeight)
+        let alpha: CGFloat = content.stale ? 0.5 : 1
+
+        let image = NSImage(size: size, flipped: true) { _ in
+            if let symbol {
+                let tinted = NSImage(size: symbolSize, flipped: false) { rect in
+                    symbol.draw(in: rect)
+                    NSColor.labelColor.set()
+                    rect.fill(using: .sourceAtop)
+                    return true
+                }
+                tinted.draw(in: NSRect(x: 0, y: (barHeight - symbolSize.height) / 2,
+                                       width: symbolSize.width, height: symbolSize.height),
+                            from: .zero, operation: .sourceOver, fraction: alpha)
+            }
+            let rowHeight = barHeight / 2
+            let textHeight = rowFont.ascender - rowFont.descender
+            let x = ceil(symbolSize.width) + gap
+            let rows: [(String, NSFont, NSColor)] = [
+                (content.text, rowFont, .labelColor),
+                (content.aqiText ?? "", aqiFont, content.band.map(AQIColors.nsColor) ?? .labelColor),
+            ]
+            for (index, (string, font, color)) in rows.enumerated() {
+                let y = CGFloat(index) * rowHeight + (rowHeight - textHeight) / 2
+                NSAttributedString(string: string, attributes: [
+                    .font: font, .foregroundColor: color.withAlphaComponent(alpha),
+                ]).draw(at: NSPoint(x: x, y: y))
+            }
+            return true
+        }
+        image.isTemplate = false
+        return image
     }
 
     private func accessibilityLabel(for content: MenubarContent) -> String {

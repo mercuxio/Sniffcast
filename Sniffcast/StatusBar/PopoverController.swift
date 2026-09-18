@@ -27,6 +27,9 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         let popover = NSPopover()
         popover.behavior = .transient
         popover.animates = true
+        // Let the panel's `.menu` material extend under the arrow too, so the whole
+        // popover has one consistent density.
+        popover.hasFullSizeContent = true
         popover.delegate = self
         let hosting = NSHostingController(rootView: makeContent())
         hosting.sizingOptions = .preferredContentSize

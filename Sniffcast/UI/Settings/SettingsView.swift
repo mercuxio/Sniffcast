@@ -37,6 +37,8 @@ private struct GeneralSettings: View {
             Picker("Menubar style", selection: $settings.menubarStyle) {
                 ForEach(MenubarStyle.allCases) { Text($0.title).tag($0) }
             }
+            Toggle("Color-code AQI in menubar", isOn: Binding(
+                get: { !settings.aqiMonochrome }, set: { settings.aqiMonochrome = !$0 }))
             Picker("Refresh every", selection: $settings.refreshInterval) {
                 ForEach(RefreshInterval.allCases) { Text("\($0.rawValue) min").tag($0) }
             }

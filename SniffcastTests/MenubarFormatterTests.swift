@@ -9,8 +9,29 @@ struct MenubarFormatterTests {
     }
 
     func content(_ s: Snapshot?, _ style: MenubarStyle, phase: MenubarPhase = .weather,
-                 unit: TemperatureUnit = .fahrenheit, scale: AQIScaleKind = .us, stale: Bool = false) -> MenubarContent {
-        MenubarFormatter.content(snapshot: s, style: style, phase: phase, temperatureUnit: unit, scale: scale, stale: stale)
+                 unit: TemperatureUnit = .fahrenheit, scale: AQIScaleKind = .us, stale: Bool = false,
+                 monochrome: Bool = false) -> MenubarContent {
+        MenubarFormatter.content(snapshot: s, style: style, phase: phase, temperatureUnit: unit, scale: scale,
+                                 stale: stale, monochrome: monochrome)
+    }
+
+    @Test func monochromeFullDropsTint() throws {
+        let c = content(try snapshot(), .full, monochrome: true)
+        #expect(c.aqiText == "AQI 31")
+        #expect(c.band == nil)
+    }
+
+    /// A colorless dot says nothing, so compact falls back to the number.
+    @Test func monochromeCompactShowsNumber() throws {
+        let c = content(try snapshot(), .compact, monochrome: true)
+        #expect(c.aqiText == "31")
+        #expect(c.band == nil)
+    }
+
+    @Test func monochromeRotatingAirPhase() throws {
+        let c = content(try snapshot(), .rotating, phase: .air, monochrome: true)
+        #expect(c.aqiText == "31")
+        #expect(c.band == nil)
     }
 
     @Test(arguments: MenubarStyle.allCases)
@@ -24,6 +45,23 @@ struct MenubarFormatterTests {
     @Test func full() throws {
         let c = content(try snapshot(), .full)
         #expect(c == MenubarContent(symbol: "cloud.sun.fill", text: "60°", aqiText: "AQI 31", band: .good, stale: false))
+    }
+
+    @Test func twoRowsStacksBareNumber() throws {
+        let c = content(try snapshot(), .twoRows)
+        #expect(c == MenubarContent(symbol: "cloud.sun.fill", text: "60°", aqiText: "31", band: .good,
+                                    stacked: true, stale: false))
+    }
+
+    @Test func twoRowsWithoutAirIsSingleRow() throws {
+        let c = content(try snapshot(air: false), .twoRows)
+        #expect(c.aqiText == nil)
+        #expect(!c.stacked)
+    }
+
+    @Test(arguments: [MenubarStyle.full, .compact, .rotating])
+    func onlyTwoRowsStacks(style: MenubarStyle) throws {
+        #expect(!content(try snapshot(), style).stacked)
     }
 
     @Test func compactUsesDot() throws {
@@ -41,7 +79,7 @@ struct MenubarFormatterTests {
         let air = content(s, .rotating, phase: .air)
         #expect(air.symbol == "aqi.medium")
         #expect(air.text == "")
-        #expect(air.aqiText == "AQI 31")
+        #expect(air.aqiText == "31")
     }
 
     @Test func rotatingAirPhaseWithoutAirShowsWeather() throws {
