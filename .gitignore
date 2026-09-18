@@ -4,3 +4,5 @@ build/
 DerivedData/
 .swiftpm/
 xcuserdata/
+Sniffcast/Info.plist
+Sniffcast/Sniffcast.entitlements
