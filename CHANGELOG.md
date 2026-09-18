@@ -4,6 +4,13 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- An app icon: Lucide's cloud-sun, with an amber sun and a white cloud on
+  the same dark tile as Squiggle's icon.
+
 ## [1.0.0] — 2026-09-18
 
 First public release.

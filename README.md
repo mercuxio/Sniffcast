@@ -159,6 +159,7 @@ Distribution would need a Developer ID and notarization.
 | `Sniffcast/Location` | A thin CoreLocation wrapper. |
 | `Sniffcast/StatusBar` | The `NSStatusItem`, the popover, and the AQI colours. |
 | `Sniffcast/UI` | The SwiftUI dropdown and the settings window. |
+| `Tools/GenerateIcon.swift` | Draws the app icon; `./scripts/make-icon.sh` turns it into `Sniffcast/Resources/AppIcon.icns`. |
 | `SniffcastTests/Fixtures` | Open-Meteo responses recorded live, used to test the decoder offline. |
 | `docs/superpowers/specs/` | The design spec, which is the final word on behaviour. |
 
@@ -187,3 +188,6 @@ Sniffcast isn't affiliated with or endorsed by Open-Meteo.
 ## License
 
 [MIT](LICENSE).
+
+The app icon is Lucide's [cloud-sun](https://lucide.dev/icons/cloud-sun),
+used under the [ISC license](https://github.com/lucide-icons/lucide/blob/main/LICENSE).
