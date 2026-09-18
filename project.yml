@@ -1,0 +1,64 @@
+name: Sniffcast
+options:
+  bundleIdPrefix: com.houlanyit
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "15.0"
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Manual
+    DEVELOPMENT_TEAM: ""
+    ENABLE_HARDENED_RUNTIME: YES
+    SWIFT_STRICT_CONCURRENCY: complete
+targets:
+  Sniffcast:
+    type: application
+    platform: macOS
+    sources:
+      - Sniffcast
+    info:
+      path: Sniffcast/Info.plist
+      properties:
+        CFBundleDisplayName: Sniffcast
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        LSUIElement: true
+        LSApplicationCategoryType: public.app-category.weather
+        NSLocationUsageDescription: Sniffcast uses your approximate location to show local weather and air quality.
+        NSLocationWhenInUseUsageDescription: Sniffcast uses your approximate location to show local weather and air quality.
+        NSHumanReadableCopyright: "Weather data by Open-Meteo.com (CC BY 4.0)"
+    entitlements:
+      path: Sniffcast/Sniffcast.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.network.client: true
+        com.apple.security.personal-information.location: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.houlanyit.Sniffcast
+        GENERATE_INFOPLIST_FILE: NO
+  SniffcastTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - SniffcastTests
+      - Sniffcast/Domain
+      - Sniffcast/Data
+      - Sniffcast/State/SettingsStore.swift
+      - Sniffcast/State/LocationsStore.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.houlanyit.SniffcastTests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  Sniffcast:
+    build:
+      targets:
+        Sniffcast: all
+        SniffcastTests: [test]
+    test:
+      targets:
+        - SniffcastTests
