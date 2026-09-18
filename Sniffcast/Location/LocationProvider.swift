@@ -74,10 +74,8 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
     /// ignored: the last good name (or "Current Location") stays up, and the next fix retries.
     private func name(_ location: CLLocation) {
         geocoder.cancelGeocode()
-        // Pass the user's first language explicitly. Left nil, the geocoder skips a regional
-        // English it has no names for (en-MY) and answers in the *next* language on the list,
-        // so a Mac set to English (Malaysia), then Chinese, got "吉隆坡" for Kuala Lumpur.
-        let locale = Locale.preferredLanguages.first.map(Locale.init(identifier:))
+        // Explicit, never nil: see PreferredLanguage for why the default gets this wrong.
+        let locale = Locale(identifier: PreferredLanguage.identifier())
         geocoder.reverseGeocodeLocation(location, preferredLocale: locale) { [weak self] placemarks, _ in
             let placemark = placemarks?.first
             // The neighbourhood-to-city ladder: the most specific name a person would recognise.

@@ -36,7 +36,7 @@ struct OpenMeteoClient: WeatherProviding {
         c.queryItems = [
             .init(name: "name", value: trimmed),
             .init(name: "count", value: "8"),
-            .init(name: "language", value: Locale.current.language.languageCode?.identifier ?? "en"),
+            .init(name: "language", value: PreferredLanguage.code()),
         ]
         return try SnapshotMapper.decodeGeocode(try await get(c.url!))
     }

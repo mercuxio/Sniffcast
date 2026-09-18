@@ -59,7 +59,9 @@ for your location once more. Relaunching the same version doesn't.
   coffee, and Quit.
 - **Your location or any city.** Current location is the default. Add cities
   by searching, reorder them, and switch between them from the dropdown's
-  header. Saved cities never touch Location Services.
+  header. Saved cities never touch Location Services. Your current location is
+  shown by name, and place names, both for it and in city search, follow your
+  Mac's first preferred language.
 - **AQI alerts.** One notification when the AQI reaches your threshold, and
   another only after it has fallen back well below it, so an AQI hovering
   around the line doesn't turn into a stream of alerts.
