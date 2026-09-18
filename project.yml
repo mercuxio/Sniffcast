@@ -1,6 +1,6 @@
 name: Sniffcast
 options:
-  bundleIdPrefix: com.sniffcast
+  bundleIdPrefix: com.houlanyit
   deploymentTarget:
     macOS: "15.0"
   createIntermediateGroups: true
@@ -38,7 +38,7 @@ targets:
         com.apple.security.personal-information.location: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.sniffcast.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.houlanyit.Sniffcast
         GENERATE_INFOPLIST_FILE: NO
   SniffcastTests:
     type: bundle.unit-test
@@ -51,7 +51,7 @@ targets:
       - Sniffcast/State/LocationsStore.swift
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.sniffcast.tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.houlanyit.SniffcastTests
         GENERATE_INFOPLIST_FILE: YES
 schemes:
   Sniffcast:

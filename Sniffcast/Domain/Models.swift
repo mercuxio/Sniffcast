@@ -22,6 +22,8 @@ struct GeocodeResult: Hashable, Identifiable, Sendable {
 /// One refresh worth of data. Temperatures are °C and wind km/h, as fetched.
 struct Snapshot: Equatable, Sendable {
     var fetchedAt: Date
+    /// The location's time zone; hours and weekdays are shown in it.
+    var timeZone: TimeZone
     var current: CurrentConditions
     var hourly: [HourlyPoint]
     var daily: [DailyPoint]

@@ -58,7 +58,7 @@ final class RefreshScheduler {
             let online = path.status == .satisfied
             Task { @MainActor in self?.setOnline(online) }
         }
-        pathMonitor.start(queue: DispatchQueue(label: "com.sniffcast.path", qos: .utility))
+        pathMonitor.start(queue: DispatchQueue(label: "com.houlanyit.Sniffcast.path", qos: .utility))
     }
 
     // MARK: Triggers
@@ -86,7 +86,7 @@ final class RefreshScheduler {
     private func installPeriodic(_ interval: RefreshInterval) {
         periodic?.invalidate()
         installedInterval = interval
-        let activity = NSBackgroundActivityScheduler(identifier: "com.sniffcast.refresh")
+        let activity = NSBackgroundActivityScheduler(identifier: "com.houlanyit.Sniffcast.refresh")
         activity.repeats = true
         activity.interval = interval.seconds
         activity.tolerance = RefreshPolicy(interval: interval).tolerance
@@ -172,7 +172,7 @@ final class RefreshScheduler {
     private func scheduleRetry() {
         cancelRetry()
         let delay = policy.backoff(attempt: attempt)
-        let activity = NSBackgroundActivityScheduler(identifier: "com.sniffcast.retry")
+        let activity = NSBackgroundActivityScheduler(identifier: "com.houlanyit.Sniffcast.retry")
         activity.repeats = false
         activity.interval = delay
         activity.tolerance = delay / 6

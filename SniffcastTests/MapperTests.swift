@@ -13,6 +13,7 @@ struct MapperTests {
     @Test func mapsCurrentConditions() throws {
         let s = try london()
         #expect(s.fetchedAt == fetchedAt)
+        #expect(s.timeZone.identifier == "Europe/London")
         #expect(s.current.temperature == 15.5)
         #expect(s.current.apparentTemperature == 13.1)
         #expect(s.current.humidity == 61)

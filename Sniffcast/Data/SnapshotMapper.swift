@@ -92,7 +92,11 @@ enum SnapshotMapper {
             )
         }
 
-        return Snapshot(fetchedAt: fetchedAt, current: current, hourly: hourly, daily: daily, air: airQuality)
+        let timeZone = forecast.timezone.flatMap(TimeZone.init(identifier:))
+            ?? forecast.utc_offset_seconds.flatMap(TimeZone.init(secondsFromGMT:))
+            ?? .current
+
+        return Snapshot(fetchedAt: fetchedAt, timeZone: timeZone, current: current, hourly: hourly, daily: daily, air: airQuality)
     }
 
     /// Per-day max of each hourly pollen series; nil when the day has no pollen data at all.

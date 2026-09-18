@@ -23,6 +23,8 @@ struct ForecastResponse: Decodable, Sendable {
         var temperature_2m_max: [Double?]?
         var temperature_2m_min: [Double?]?
     }
+    var timezone: String?
+    var utc_offset_seconds: Int?
     var current: Current
     var hourly: Hourly?
     var daily: Daily?

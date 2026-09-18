@@ -20,8 +20,6 @@ final class AppState {
     var lastError: String?
     var currentCoordinate: Coordinate?
     var locationStatus: LocationStatus = .unknown
-    /// Bumped to ask the panel to show location setup (e.g. from the footer "+" button).
-    var settingsRequest: SettingsTab?
 }
 
 enum SettingsTab: String, Hashable, Sendable {
