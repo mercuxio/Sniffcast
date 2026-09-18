@@ -79,12 +79,19 @@ private struct GeneralSettings: View {
             }
 
             Section {
+                Text("Sniffcast \(Self.version)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 Link("Weather data by Open-Meteo.com (CC BY 4.0)", destination: URL(string: "https://open-meteo.com/")!)
                     .font(.caption)
             }
         }
         .formStyle(.grouped)
     }
+
+    /// Read from the bundle so it always matches the build, never a copy that drifts.
+    private static let version =
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
 }
 
 // MARK: Locations
