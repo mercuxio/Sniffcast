@@ -22,6 +22,11 @@ struct MapperTests {
         #expect(s.current.isDay)
     }
 
+    /// The moon phase symbol is mirrored south of the equator, so the snapshot keeps its latitude.
+    @Test func mapsLatitude() throws {
+        #expect(try london().latitude == 51.51147)
+    }
+
     @Test func mapsHourlyAndDaily() throws {
         let s = try london()
         #expect(s.hourly.count == 12)

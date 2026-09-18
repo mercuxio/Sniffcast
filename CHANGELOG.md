@@ -4,6 +4,16 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] — 2026-09-18
+
+### Added
+
+- On clear and mainly clear nights, the weather symbol shows the current moon
+  phase: in the menu bar, the current conditions, and the night hours of the
+  hourly forecast. The phase is worked out locally from the date, and is
+  mirrored for locations in the southern hemisphere.
+- A **Show moon phase on partly cloudy nights** setting, off by default.
+
 ## [1.0.2] — 2026-09-18
 
 ### Fixed

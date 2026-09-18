@@ -2,8 +2,15 @@ import Foundation
 
 /// WMO weather interpretation codes, as returned in Open-Meteo's `weather_code`.
 enum WeatherCode {
-    static func symbol(_ code: Int, isDay: Bool) -> String {
-        switch code {
+    /// At night, clear skies show the moon's phase for `date`, and so do partly cloudy ones
+    /// when `phaseOnPartlyCloudy` is set. Anything cloudier keeps its weather symbol.
+    /// Without a date there is no phase to show.
+    static func symbol(_ code: Int, isDay: Bool, date: Date? = nil, latitude: Double = 0,
+                       phaseOnPartlyCloudy: Bool = false) -> String {
+        if !isDay, let date, code == 0 || code == 1 || (code == 2 && phaseOnPartlyCloudy) {
+            return MoonPhase.at(date).symbol(southernHemisphere: latitude < 0)
+        }
+        return switch code {
         case 0: isDay ? "sun.max.fill" : "moon.stars.fill"
         case 1, 2: isDay ? "cloud.sun.fill" : "cloud.moon.fill"
         case 3: "cloud.fill"

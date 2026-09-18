@@ -43,12 +43,16 @@ enum MenubarFormatter {
         temperatureUnit: TemperatureUnit,
         scale: AQIScaleKind,
         stale: Bool,
-        monochrome: Bool = false
+        monochrome: Bool = false,
+        moonPhaseOnPartlyCloudy: Bool = false
     ) -> MenubarContent {
         guard let snapshot else {
             return MenubarContent(symbol: placeholderSymbol, text: "—", aqiText: nil, band: nil, stale: stale)
         }
-        let symbol = WeatherCode.symbol(snapshot.current.weatherCode, isDay: snapshot.current.isDay)
+        // The phase follows the fetch time, so it moves on at the next refresh after it changes.
+        let symbol = WeatherCode.symbol(snapshot.current.weatherCode, isDay: snapshot.current.isDay,
+                                        date: snapshot.fetchedAt, latitude: snapshot.latitude,
+                                        phaseOnPartlyCloudy: moonPhaseOnPartlyCloudy)
         let temp = Units.formatTemperature(snapshot.current.temperature, in: temperatureUnit)
         let aqi = snapshot.air?.aqi(scale)
         let band = monochrome ? nil : aqi.map { AQIScale.band(for: $0, scale: scale) }

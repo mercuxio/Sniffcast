@@ -32,7 +32,7 @@ final class StatusItemController: NSObject {
 
         Sniffcast.observe { [state, settings] in
             (state.snapshot, state.isStale, settings.menubarStyle, settings.temperatureUnit, settings.aqiScale,
-             settings.aqiMonochrome)
+             settings.aqiMonochrome, settings.moonPhaseOnPartlyCloudy)
         } apply: { [weak self] _ in
             self?.updateRotation()
             self?.render()
@@ -48,7 +48,7 @@ final class StatusItemController: NSObject {
         let content = MenubarFormatter.content(
             snapshot: state.snapshot, style: settings.menubarStyle, phase: phase,
             temperatureUnit: settings.temperatureUnit, scale: settings.aqiScale, stale: state.isStale,
-            monochrome: settings.aqiMonochrome)
+            monochrome: settings.aqiMonochrome, moonPhaseOnPartlyCloudy: settings.moonPhaseOnPartlyCloudy)
         // Redraw only when the rendered output actually changes.
         guard content != lastContent, let button = item.button else { return }
         lastContent = content

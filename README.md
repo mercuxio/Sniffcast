@@ -16,7 +16,7 @@ silicon and Intel.
 
 ## Install
 
-**Download the release.** Get `Sniffcast-1.0.2.zip` from
+**Download the release.** Get `Sniffcast-1.1.0.zip` from
 [Releases](https://github.com/mercuxio/Sniffcast/releases), unzip it, and drag
 `Sniffcast.app` into `/Applications`.
 
@@ -52,6 +52,10 @@ for your location once more. Relaunching the same version doesn't.
   hazardous, with separate colours tuned for light and dark menu bars. Turn
   off **Color-code AQI in menubar** for plain text. Compact then shows the
   number instead of the dot, since a dot with no colour tells you nothing.
+- **The moon at night.** On clear nights the weather symbol becomes the
+  current moon phase, in the menu bar, in the current conditions, and in the
+  night hours of the hourly forecast. It is mirrored for the southern
+  hemisphere. Cloudier weather keeps its usual symbol.
 - **A dropdown** with current conditions, the six pollutants (PM2.5, PM10,
   ozone, NO₂, SO₂, CO), the next 12 hours with an AQI for each, and 7 days
   with highs, lows, and pollen where Open-Meteo has it (mostly Europe). The
@@ -73,6 +77,8 @@ a crash.
 
 - **Menubar style**: Full, Two Rows, Compact, or Rotating.
 - **Color-code AQI in menubar**: on by default.
+- **Show moon phase on partly cloudy nights**: off by default, so only clear
+  and mainly clear nights show the moon.
 - **Refresh every** 15, 30 (the default), 45, or 60 minutes. Air-quality data
   only updates hourly, so shorter intervals mainly freshen the current
   weather.
@@ -177,7 +183,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Status
 
-Version 1.0.2. The test suite passes, and the app is in daily use against live
+Version 1.1.0. The test suite passes, and the app is in daily use against live
 Open-Meteo data.
 
 Releases include an ad-hoc signed `Sniffcast.app` in a zip; see

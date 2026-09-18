@@ -39,6 +39,7 @@ private struct GeneralSettings: View {
             }
             Toggle("Color-code AQI in menubar", isOn: Binding(
                 get: { !settings.aqiMonochrome }, set: { settings.aqiMonochrome = !$0 }))
+            Toggle("Show moon phase on partly cloudy nights", isOn: $settings.moonPhaseOnPartlyCloudy)
             Picker("Refresh every", selection: $settings.refreshInterval) {
                 ForEach(RefreshInterval.allCases) { Text("\($0.rawValue) min").tag($0) }
             }

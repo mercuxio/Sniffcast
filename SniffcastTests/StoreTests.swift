@@ -118,6 +118,14 @@ struct SettingsStoreTests {
         #expect(s.alertThreshold == 100)
         #expect(!s.alertsEnabled)
         #expect(!s.aqiMonochrome)
+        #expect(!s.moonPhaseOnPartlyCloudy)
+    }
+
+    @Test func persistsMoonPhaseOnPartlyCloudy() {
+        let a = SettingsStore(defaults: defaults, locale: Locale(identifier: "en_US"))
+        a.moonPhaseOnPartlyCloudy = true
+        let b = SettingsStore(defaults: defaults, locale: Locale(identifier: "en_US"))
+        #expect(b.moonPhaseOnPartlyCloudy)
     }
 
     @Test func persistsMonochrome() {

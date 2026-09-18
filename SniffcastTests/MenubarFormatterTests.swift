@@ -10,9 +10,26 @@ struct MenubarFormatterTests {
 
     func content(_ s: Snapshot?, _ style: MenubarStyle, phase: MenubarPhase = .weather,
                  unit: TemperatureUnit = .fahrenheit, scale: AQIScaleKind = .us, stale: Bool = false,
-                 monochrome: Bool = false) -> MenubarContent {
+                 monochrome: Bool = false, moonOnPartlyCloudy: Bool = false) -> MenubarContent {
         MenubarFormatter.content(snapshot: s, style: style, phase: phase, temperatureUnit: unit, scale: scale,
-                                 stale: stale, monochrome: monochrome)
+                                 stale: stale, monochrome: monochrome, moonPhaseOnPartlyCloudy: moonOnPartlyCloudy)
+    }
+
+    func night(code: Int) throws -> Snapshot {
+        var s = try snapshot()
+        s.current.isDay = false
+        s.current.weatherCode = code
+        s.fetchedAt = MoonPhaseTests.utc("2024-01-25T17:54:00Z")
+        return s
+    }
+
+    @Test func clearNightShowsTheMoonPhase() throws {
+        #expect(content(try night(code: 0), .full).symbol == "moonphase.full.moon.inverse")
+    }
+
+    @Test func partlyCloudyNightFollowsTheSetting() throws {
+        #expect(content(try night(code: 2), .full).symbol == "cloud.moon.fill")
+        #expect(content(try night(code: 2), .full, moonOnPartlyCloudy: true).symbol == "moonphase.full.moon.inverse")
     }
 
     @Test func monochromeFullDropsTint() throws {
