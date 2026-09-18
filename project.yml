@@ -47,6 +47,8 @@ targets:
       - SniffcastTests
       - Sniffcast/Domain
       - Sniffcast/Data
+      - Sniffcast/State/SettingsStore.swift
+      - Sniffcast/State/LocationsStore.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sniffcast.tests
