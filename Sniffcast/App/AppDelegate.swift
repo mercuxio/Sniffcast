@@ -47,6 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func wireLocation() {
         locationProvider.onUpdate = { [unowned self] coordinate in state.currentCoordinate = coordinate }
         locationProvider.onStatus = { [unowned self] status in state.locationStatus = status }
+        locationProvider.onPlaceName = { [unowned self] name in locations.currentName = name }
         Sniffcast.observe { [locations] in locations.active } apply: { [unowned self] active in
             if active == .current { locationProvider.start() } else { locationProvider.stop() }
         }

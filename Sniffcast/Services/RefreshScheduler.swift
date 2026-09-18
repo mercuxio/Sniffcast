@@ -104,6 +104,12 @@ final class RefreshScheduler {
 
     private func targetChanged(_ target: LocationTarget?) {
         guard target != lastTarget else { return }
+        // A place name arriving from reverse geocoding is a relabel, not a new place to fetch.
+        if let target, let lastTarget, target.key == lastTarget.key, target.coordinate == lastTarget.coordinate {
+            self.lastTarget = target
+            state.targetName = target.name
+            return
+        }
         let keyChanged = target?.key != lastTarget?.key
         lastTarget = target
         state.targetName = target?.name

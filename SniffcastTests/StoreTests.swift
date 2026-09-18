@@ -22,6 +22,19 @@ struct LocationsStoreTests {
         #expect(t == LocationTarget(key: "current", name: "Current Location", coordinate: here, isCurrent: true))
     }
 
+    @Test func currentTargetUsesGeocodedName() {
+        let store = LocationsStore(defaults: defaults)
+        store.currentName = "Westminster"
+        let t = store.target(currentCoordinate: here, locationDenied: false)
+        #expect(t?.name == "Westminster")
+        #expect(t?.key == "current")
+    }
+
+    @Test func currentNamePersists() {
+        LocationsStore(defaults: defaults).currentName = "Westminster"
+        #expect(LocationsStore(defaults: defaults).currentName == "Westminster")
+    }
+
     @Test func addingDoesNotChangeSelection() {
         let store = LocationsStore(defaults: defaults)
         store.add(portland)

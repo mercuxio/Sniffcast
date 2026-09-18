@@ -103,7 +103,16 @@ private struct LocationsSettings: View {
             Section("Saved") {
                 List {
                     HStack {
-                        Label("Current Location", systemImage: "location.fill")
+                        Label {
+                            VStack(alignment: .leading) {
+                                Text(locations.currentName ?? LocationsStore.currentFallbackName)
+                                if locations.currentName != nil {
+                                    Text("Current Location").font(.caption).foregroundStyle(.secondary)
+                                }
+                            }
+                        } icon: {
+                            Image(systemName: "location.fill")
+                        }
                         Spacer()
                         if state.locationStatus == .denied {
                             Text("Access off").font(.caption).foregroundStyle(.secondary)

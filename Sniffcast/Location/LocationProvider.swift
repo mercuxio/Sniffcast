@@ -6,8 +6,11 @@ import CoreLocation
 final class LocationProvider: NSObject, CLLocationManagerDelegate {
     var onUpdate: ((Coordinate) -> Void)?
     var onStatus: ((LocationStatus) -> Void)?
+    /// A human-readable name for the latest fix ("Kowloon", "Brooklyn").
+    var onPlaceName: ((String) -> Void)?
 
     private let manager = CLLocationManager()
+    private let geocoder = CLGeocoder()
     private var lastEmitted: CLLocation?
     private var running = false
 
@@ -64,6 +67,26 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
         if let lastEmitted, location.distance(from: lastEmitted) < 1_000 { return }
         lastEmitted = location
         onUpdate?(Coordinate(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude))
+        name(location)
+    }
+
+    /// One reverse geocode per emitted fix, so at most one per kilometre moved. Failures are
+    /// ignored: the last good name (or "Current Location") stays up, and the next fix retries.
+    private func name(_ location: CLLocation) {
+        geocoder.cancelGeocode()
+        // Pass the user's first language explicitly. Left nil, the geocoder skips a regional
+        // English it has no names for (en-MY) and answers in the *next* language on the list,
+        // so a Mac set to English (Malaysia), then Chinese, got "吉隆坡" for Kuala Lumpur.
+        let locale = Locale.preferredLanguages.first.map(Locale.init(identifier:))
+        geocoder.reverseGeocodeLocation(location, preferredLocale: locale) { [weak self] placemarks, _ in
+            let placemark = placemarks?.first
+            // The neighbourhood-to-city ladder: the most specific name a person would recognise.
+            let name = placemark?.locality ?? placemark?.subAdministrativeArea
+                ?? placemark?.administrativeArea ?? placemark?.name
+            MainActor.assumeIsolated {
+                if let name { self?.onPlaceName?(name) }
+            }
+        }
     }
 
     // CLLocationManager calls its delegate on the thread it was created on — main here.

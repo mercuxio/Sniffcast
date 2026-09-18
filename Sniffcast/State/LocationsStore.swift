@@ -19,20 +19,25 @@ struct LocationTarget: Equatable, Sendable {
 @Observable
 final class LocationsStore {
     private enum Key {
-        static let saved = "savedLocations", active = "activeLocation"
+        static let saved = "savedLocations", active = "activeLocation", currentName = "currentLocationName"
     }
     static let currentKey = "current"
+    static let currentFallbackName = "Current Location"
 
     @ObservationIgnored private let defaults: UserDefaults
 
     private(set) var saved: [SavedLocation] { didSet { persistSaved() } }
     var active: ActiveLocation { didSet { persistActive() } }
+    /// The place name for the device's location, from reverse geocoding. Persisted so the
+    /// header shows a name at launch instead of waiting on a fix and a geocode.
+    var currentName: String? { didSet { defaults.set(currentName, forKey: Key.currentName) } }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let saved = defaults.data(forKey: Key.saved)
             .flatMap { try? JSONDecoder().decode([SavedLocation].self, from: $0) } ?? []
         self.saved = saved
+        currentName = defaults.string(forKey: Key.currentName)
         // A stored selection that no longer exists (or none at all) means current location.
         if let raw = defaults.string(forKey: Key.active), let id = UUID(uuidString: raw),
            saved.contains(where: { $0.id == id }) {
@@ -78,7 +83,7 @@ final class LocationsStore {
                                   coordinate: location.coordinate, isCurrent: false)
         }
         if let currentCoordinate {
-            return LocationTarget(key: Self.currentKey, name: "Current Location",
+            return LocationTarget(key: Self.currentKey, name: currentName ?? Self.currentFallbackName,
                                   coordinate: currentCoordinate, isCurrent: true)
         }
         if locationDenied, let first = saved.first {

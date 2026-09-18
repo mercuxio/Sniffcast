@@ -64,7 +64,7 @@ struct PanelView: View {
             Button {
                 locations.active = .current
             } label: {
-                Label("Current Location", systemImage: "location.fill")
+                Label(locations.currentName ?? LocationsStore.currentFallbackName, systemImage: "location.fill")
             }
             if !locations.saved.isEmpty { Divider() }
             ForEach(locations.saved) { location in
