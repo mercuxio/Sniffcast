@@ -24,8 +24,8 @@ targets:
       properties:
         CFBundleDisplayName: Sniffcast
         CFBundleIconFile: AppIcon
-        CFBundleShortVersionString: "1.0.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "1.0.1"
+        CFBundleVersion: "2"
         LSUIElement: true
         LSApplicationCategoryType: public.app-category.weather
         NSLocationUsageDescription: Sniffcast uses your approximate location to show local weather and air quality.
