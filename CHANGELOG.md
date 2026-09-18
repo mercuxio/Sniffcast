@@ -4,6 +4,15 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] — 2026-09-18
+
+### Changed
+
+- The moon in the dropdown is now coloured: gold in light mode and cream in
+  dark mode, with the shadowed part faint. Before, it was drawn in the text
+  colour, so in light mode a full moon was a black disc. The menu bar icon is
+  unchanged.
+
 ## [1.1.0] — 2026-09-18
 
 ### Added

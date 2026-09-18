@@ -8,10 +8,9 @@ struct CurrentCard: View {
         let current = snapshot.current
         let scale = settings.aqiScale
         HStack(alignment: .center, spacing: 12) {
-            Image(systemName: WeatherCode.symbol(current.weatherCode, isDay: current.isDay,
-                                                 date: snapshot.fetchedAt, latitude: snapshot.latitude,
-                                                 phaseOnPartlyCloudy: settings.moonPhaseOnPartlyCloudy))
-                .symbolRenderingMode(.multicolor)
+            WeatherSymbol(name: WeatherCode.symbol(current.weatherCode, isDay: current.isDay,
+                                                   date: snapshot.fetchedAt, latitude: snapshot.latitude,
+                                                   phaseOnPartlyCloudy: settings.moonPhaseOnPartlyCloudy))
                 .font(.system(size: 34))
                 .frame(width: 44)
             VStack(alignment: .leading, spacing: 2) {

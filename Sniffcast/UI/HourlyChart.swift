@@ -37,10 +37,9 @@ struct HourlyChart: View {
                     VStack(spacing: 3) {
                         Text(Units.formatTemperature(point.temperature, in: unit))
                             .font(.caption.weight(.medium).monospacedDigit())
-                        Image(systemName: WeatherCode.symbol(
+                        WeatherSymbol(name: WeatherCode.symbol(
                             point.weatherCode, isDay: isDay(point.time), date: point.time,
                             latitude: snapshot.latitude, phaseOnPartlyCloudy: settings.moonPhaseOnPartlyCloudy))
-                            .symbolRenderingMode(.multicolor)
                             .font(.system(size: 12))
                             .frame(height: 14)
                         if let aqi = point.aqi(settings.aqiScale) {
