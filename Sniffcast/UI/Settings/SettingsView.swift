@@ -79,11 +79,13 @@ private struct GeneralSettings: View {
             }
 
             Section {
-                Text("Sniffcast \(Self.version)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Link("Weather data by Open-Meteo.com (CC BY 4.0)", destination: URL(string: "https://open-meteo.com/")!)
-                    .font(.caption)
+                HStack {
+                    Text("Sniffcast \(Self.version)")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Link("Weather data by Open-Meteo.com (CC BY 4.0)", destination: URL(string: "https://open-meteo.com/")!)
+                }
+                .font(.caption)
             }
         }
         .formStyle(.grouped)
