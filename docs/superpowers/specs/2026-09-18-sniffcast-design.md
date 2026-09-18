@@ -51,7 +51,7 @@ SniffcastTests/
 | `OpenMeteoClient` (protocol `WeatherProviding`) | Fetch + decode API responses into domain models | `URLSession` |
 | `LocationProvider` (protocol `LocationProviding`) | One-shot fix + significant-change updates; authorization state | CoreLocation |
 | `SavedLocationsStore` | Persist ordered list of locations + active selection | UserDefaults |
-| `SettingsStore` | Units, AQI scale, menubar style, alert config | UserDefaults |
+| `SettingsStore` | Units, AQI scale, menubar style, refresh interval, alert config | UserDefaults |
 | `AppState` (`@Observable`, `@MainActor`) | Single source of truth: active location, latest `Snapshot`, fetch status, staleness | — |
 | `RefreshScheduler` | Decide *when* to fetch; call provider; write `AppState` | provider, `NSBackgroundActivityScheduler`, `NWPathMonitor` |
 | `AlertService` | Evaluate threshold after each refresh; post notification with hysteresis | `AppState`, UserNotifications |
@@ -97,8 +97,8 @@ Both refresh requests run concurrently (`async let`). A `Snapshot` is only commi
 
 | Area | Design |
 |---|---|
-| Refresh cadence | `NSBackgroundActivityScheduler`, interval 30 min, tolerance 5 min, `qualityOfService = .utility`. |
-| Wake / network | On wake or network regained: fetch only if snapshot age > 30 min. `NWPathMonitor` suppresses fetches while offline. |
+| Refresh cadence | `NSBackgroundActivityScheduler`, interval = user setting (15 / 30 / 45 / 60 min, default 30), tolerance = interval ÷ 6, `qualityOfService = .utility`. Changing the setting invalidates and recreates the scheduler; it does not trigger an immediate fetch unless data is already older than the new interval. |
+| Wake / network | On wake or network regained: fetch only if snapshot age > refresh interval. `NWPathMonitor` suppresses fetches while offline. |
 | Manual refresh | Panel open triggers a fetch only if data is > 10 min old. |
 | Network | One shared `URLSession` (default config, `URLCache` 1 MB memory / 5 MB disk); minimal query fields; gzip is automatic. |
 | Location | `desiredAccuracy = kCLLocationAccuracyKilometer`; one `requestLocation()` on start, then `startMonitoringSignificantLocationChanges()`. Never continuous updates. Saved cities use no location services. |
@@ -115,7 +115,7 @@ Both refresh requests run concurrently (`async let`). A `Snapshot` is only commi
 
 ## 7. Errors & edge cases
 
-- **Fetch failure:** keep last good snapshot, mark stale if age > 45 min (dimmed menubar, "Updated 2 h ago" in panel). Retry with exponential backoff (2, 4, 8 min, capped at the 30-min interval), scheduled via the same scheduler — no retry storms.
+- **Fetch failure:** keep last good snapshot, mark stale if age > 1.5 × refresh interval (dimmed menubar, "Updated 2 h ago" in panel). Retry with exponential backoff (2, 4, 8 min, capped at the refresh interval), scheduled via the same scheduler — no retry storms.
 - **Location denied / unavailable:** fall back to the first saved city; panel shows a one-line prompt linking to System Settings. If no saved city exists, panel shows location setup.
 - **No AQI coverage / nulls:** menubar shows weather only for that field; panel hides empty sections.
 - **Invalid geocoding results / empty search:** inline "No matches" message.
@@ -125,6 +125,7 @@ Both refresh requests run concurrently (`async let`). A `Snapshot` is only commi
 
 Settings window (SwiftUI `Settings` scene, opened from the panel's gear button):
 - Menubar style (Full / Compact / Rotating)
+- Refresh interval: 15 / 30 / 45 / 60 min (default 30). Help text notes air-quality data updates hourly, so shorter intervals mainly freshen current weather.
 - Temperature °F/°C, wind mph/km/h, AQI scale US/EU (defaults from system locale)
 - Locations: "Current location" toggle, search + add, reorder, delete
 - AQI alert: on/off, threshold (default 100 US / 60 EU)
@@ -139,6 +140,6 @@ Unit tests (`SniffcastTests`, Swift Testing):
 - Decoding: saved Open-Meteo JSON fixtures (normal, nulls, missing pollen, error payload).
 - `AlertService`: threshold crossing, hysteresis, per-location state.
 - Units: conversions and formatting.
-- `RefreshScheduler` staleness decisions, using a fake clock and fake `WeatherProviding`.
+- `RefreshScheduler` staleness decisions across all four intervals (wake threshold, stale marker, backoff cap), using a fake clock and fake `WeatherProviding`.
 
 Network and location are behind protocols so tests use fakes; no live network in tests. UI verified manually plus the efficiency checklist in §6.
