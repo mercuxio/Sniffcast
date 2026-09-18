@@ -16,7 +16,7 @@ silicon and Intel.
 
 ## Install
 
-**Download the release.** Get `Sniffcast-1.0.1.zip` from
+**Download the release.** Get `Sniffcast-1.0.2.zip` from
 [Releases](https://github.com/mercuxio/Sniffcast/releases), unzip it, and drag
 `Sniffcast.app` into `/Applications`.
 
@@ -159,7 +159,7 @@ Distribution would need a Developer ID and notarization.
 | `Sniffcast/Location` | A thin CoreLocation wrapper. |
 | `Sniffcast/StatusBar` | The `NSStatusItem`, the popover, and the AQI colours. |
 | `Sniffcast/UI` | The SwiftUI dropdown and the settings window. |
-| `Tools/GenerateIcon.swift` | Draws the app icon; `./scripts/make-icon.sh` turns it into `Sniffcast/Resources/AppIcon.icns`. |
+| `Sniffcast/AppIcon.icon` | The app icon, an Icon Composer bundle: Lucide's cloud-sun as two SVG layers on a gradient fill. Open it in Icon Composer to edit. |
 | `SniffcastTests/Fixtures` | Open-Meteo responses recorded live, used to test the decoder offline. |
 | `docs/superpowers/specs/` | The design spec, which is the final word on behaviour. |
 
@@ -177,7 +177,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Status
 
-Version 1.0.1. The test suite passes, and the app is in daily use against live
+Version 1.0.2. The test suite passes, and the app is in daily use against live
 Open-Meteo data.
 
 Releases include an ad-hoc signed `Sniffcast.app` in a zip; see
