@@ -16,7 +16,7 @@ silicon and Intel.
 
 ## Install
 
-**Download the release.** Get `Sniffcast-1.1.1.zip` from
+**Download the release.** Get `Sniffcast-1.1.2.zip` from
 [Releases](https://github.com/mercuxio/Sniffcast/releases), unzip it, and drag
 `Sniffcast.app` into `/Applications`.
 
@@ -183,7 +183,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Status
 
-Version 1.1.1. The test suite passes, and the app is in daily use against live
+Version 1.1.2. The test suite passes, and the app is in daily use against live
 Open-Meteo data.
 
 Releases include an ad-hoc signed `Sniffcast.app` in a zip; see
