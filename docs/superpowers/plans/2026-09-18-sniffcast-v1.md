@@ -193,3 +193,15 @@ Verification: build, launch `build/Build/Products/Debug/Sniffcast.app`, confirm 
 - [ ] Launch app; after data loads, close panel; wait; run `footprint -p Sniffcast` → < 40 MB.
 - [ ] `top -l 3 -pid <pid> -stats cpu,idlew` → CPU ≈ 0, idle wakeups ≈ 0 in Full style.
 - [ ] Record results in this file under "Verification results". Commit `docs: record efficiency verification`.
+
+## Verification results (2026-09-18)
+
+| Check | Budget | Result |
+|---|---|---|
+| `footprint` idle, panel never opened (fresh launch + 45 s) | < 40 MB | **31 MB** ✅ |
+| `footprint` with panel/settings opened during session | — | 49 MB (SwiftUI/Charts retained only while those windows exist) |
+| `top` idle CPU, Full style, 30 s sample | ≈ 0% | **0.0%**, 3 idle wakeups ✅ |
+| Tests | all pass | **53/53** ✅ |
+
+Still manual: 30-min Activity Monitor energy check and the 10-min Instruments traces (§6),
+including confirming the Rotating timer stops while the screen is locked.
