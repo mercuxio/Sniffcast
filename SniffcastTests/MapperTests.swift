@@ -32,6 +32,8 @@ struct MapperTests {
         #expect(s.hourly.count == 12)
         #expect(s.hourly[0].time == Date(timeIntervalSince1970: 1_789_722_000))
         #expect(s.hourly[0].temperature == 14.7)
+        // Real daylight from Open-Meteo, not a guessed clock window: sunset falls after 19:00.
+        #expect(s.hourly.map(\.isDay) == Array(repeating: true, count: 10) + [false, false])
         #expect(s.daily.count == 7)
         #expect(s.daily[0].date == Date(timeIntervalSince1970: 1_789_686_000))
         #expect(s.daily[0].high == 20.1)

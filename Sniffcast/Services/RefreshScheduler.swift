@@ -114,12 +114,13 @@ final class RefreshScheduler {
         lastTarget = target
         state.targetName = target?.name
         state.isFallback = target.map { !$0.isCurrent && locations.active == .current } ?? false
-        guard target != nil else { return }
+        // Never show one place's weather under another place's name, or under no name while
+        // the target is briefly unknown (say, access just granted and no fix yet).
         if keyChanged, state.snapshotKey != target?.key {
-            // Never show one place's weather under another place's name.
             state.snapshot = nil
             state.snapshotKey = nil
         }
+        guard target != nil else { return }
         attempt = 0
         cancelRetry()
         fetch()

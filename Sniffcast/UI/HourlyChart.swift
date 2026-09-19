@@ -38,7 +38,7 @@ struct HourlyChart: View {
                         Text(Units.formatTemperature(point.temperature, in: unit))
                             .font(.caption.weight(.medium).monospacedDigit())
                         WeatherSymbol(name: WeatherCode.symbol(
-                            point.weatherCode, isDay: isDay(point.time), date: point.time,
+                            point.weatherCode, isDay: point.isDay, date: point.time,
                             latitude: snapshot.latitude, phaseOnPartlyCloudy: settings.moonPhaseOnPartlyCloudy))
                             .font(.system(size: 12))
                             .frame(height: 14)
@@ -59,13 +59,6 @@ struct HourlyChart: View {
                 }
             }
         }
-    }
-
-    private func isDay(_ date: Date) -> Bool {
-        var calendar = Calendar.current
-        calendar.timeZone = snapshot.timeZone
-        let hour = calendar.component(.hour, from: date)
-        return (6..<20).contains(hour)
     }
 
     private func accessibilityLabel(_ point: HourlyPoint) -> String {

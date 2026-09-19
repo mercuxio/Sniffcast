@@ -58,6 +58,7 @@ enum SnapshotMapper {
                     time: Date(timeIntervalSince1970: TimeInterval(t)),
                     temperature: temp,
                     weatherCode: value(h.weather_code, i) ?? -1,
+                    isDay: (value(h.is_day, i) ?? 1) == 1,
                     usAQI: ai.flatMap { value(airHourly?.us_aqi, $0) },
                     euAQI: ai.flatMap { value(airHourly?.european_aqi, $0) }
                 ))
