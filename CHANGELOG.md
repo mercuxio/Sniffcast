@@ -4,6 +4,19 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] — 2026-09-19
+
+### Fixed
+
+- Scheduled refreshes no longer skip ticks. macOS may run the refresh a little
+  early, and those early ticks were ignored, so a 30-minute interval often
+  updated only every hour.
+- The hourly forecast shows the sun and moon by real daylight from Open-Meteo,
+  not a fixed 06:00–20:00 window. Winter evenings now show the moon (and its
+  phase) instead of a sun.
+- Turning location access back on no longer leaves the fallback city's weather
+  on screen without a name while your position is found.
+
 ## [1.1.2] — 2026-09-18
 
 ### Added
