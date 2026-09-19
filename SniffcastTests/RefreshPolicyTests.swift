@@ -17,8 +17,14 @@ struct RefreshPolicyTests {
         #expect(policy.tolerance == s / 6)
 
         #expect(policy.isDue(lastFetch: nil, now: now))
-        #expect(!policy.isDue(lastFetch: now - s, now: now))
-        #expect(policy.isDue(lastFetch: now - s - 1, now: now))
+        // The scheduler may tick up to `tolerance` early, and fetchedAt is stamped after the
+        // download, so a tick on time or early must still fetch or it waits a whole interval.
+        #expect(policy.isDue(lastFetch: now - s, now: now))
+        #expect(policy.isDue(lastFetch: now - s + 2, now: now))
+        #expect(policy.isDue(lastFetch: now - (s - policy.tolerance), now: now))
+        // Wake, reconnect, and a rescheduled interval still don't refetch fresh data.
+        #expect(!policy.isDue(lastFetch: now - (s - policy.tolerance) + 1, now: now))
+        #expect(!policy.isDue(lastFetch: now - 60, now: now))
 
         #expect(!policy.isStale(lastFetch: now - s * 1.5, now: now))
         #expect(policy.isStale(lastFetch: now - s * 1.5 - 1, now: now))

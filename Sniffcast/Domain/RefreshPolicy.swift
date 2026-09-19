@@ -19,9 +19,12 @@ struct RefreshPolicy: Sendable, Equatable {
     /// Scheduler tolerance: lets the OS coalesce our wakeup with others.
     var tolerance: TimeInterval { interval.seconds / 6 }
 
+    /// Due once the data is older than the interval less the scheduler's tolerance. The OS
+    /// may run the repeating activity that early, and fetchedAt is stamped after the download,
+    /// so demanding a full interval would skip on-time ticks and double the real interval.
     func isDue(lastFetch: Date?, now: Date) -> Bool {
         guard let lastFetch else { return true }
-        return now.timeIntervalSince(lastFetch) > interval.seconds
+        return now.timeIntervalSince(lastFetch) >= interval.seconds - tolerance
     }
 
     func isDueOnPanelOpen(lastFetch: Date?, now: Date) -> Bool {
