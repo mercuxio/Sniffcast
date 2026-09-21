@@ -4,6 +4,14 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] — 2026-09-21
+
+### Fixed
+
+- Weather loads right away at launch, even just after the Mac starts up. Until a new location fix arrives, the app uses your last known position. Before, it waited for a fix that doesn't come until Wi-Fi is up.
+- A failed location fix is retried after 15 seconds, then with backoff, instead of waiting minutes for macOS to report a move.
+- If the network comes back during a fetch that then fails, the fetch is retried at once instead of after the backoff.
+
 ## [1.1.3] — 2026-09-19
 
 ### Fixed
