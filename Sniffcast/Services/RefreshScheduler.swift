@@ -22,6 +22,8 @@ final class RefreshScheduler {
     private var lastTarget: LocationTarget?
     private var fetchTask: Task<Void, Never>?
     private var online = true
+    /// The network came back while a fetch was in flight, which likely failed for want of it.
+    private var retryOnFailure = false
     private let pathMonitor = NWPathMonitor()
 
     init(state: AppState, settings: SettingsStore, locations: LocationsStore,
@@ -129,7 +131,8 @@ final class RefreshScheduler {
     private func setOnline(_ isOnline: Bool) {
         let regained = isOnline && !online
         online = isOnline
-        if regained { refreshIfDue() }
+        guard regained else { return }
+        if fetchTask != nil { retryOnFailure = true } else { refreshIfDue() }
     }
 
     private func fetch() {
@@ -155,6 +158,8 @@ final class RefreshScheduler {
     private func finish(_ result: Result<Snapshot, any Error>, for target: LocationTarget) {
         fetchTask = nil
         state.isFetching = false
+        let retryNow = retryOnFailure
+        retryOnFailure = false
         // Selection changed mid-flight: discard and fetch for the new target.
         guard target.key == lastTarget?.key else {
             fetch()
@@ -170,6 +175,12 @@ final class RefreshScheduler {
             alerts.handle(snapshot: snapshot, key: target.key, locationName: target.name)
         case .failure(let error):
             state.lastError = Self.message(for: error)
+            // Back online since this fetch started (say, launched at login before Wi-Fi): try
+            // again now rather than after the backoff.
+            if retryNow {
+                fetch()
+                return
+            }
             attempt += 1
             scheduleRetry()
         }

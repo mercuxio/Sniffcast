@@ -45,7 +45,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Location Services run only while "Current Location" is the active selection.
     private func wireLocation() {
-        locationProvider.onUpdate = { [unowned self] coordinate in state.currentCoordinate = coordinate }
+        locationProvider.onUpdate = { [unowned self] coordinate in
+            state.currentCoordinate = coordinate
+            locations.lastCurrentCoordinate = coordinate
+        }
+        locationProvider.seed(locations.lastCurrentCoordinate)
         locationProvider.onStatus = { [unowned self] status in state.locationStatus = status }
         locationProvider.onPlaceName = { [unowned self] name in locations.currentName = name }
         Sniffcast.observe { [locations] in locations.active } apply: { [unowned self] active in

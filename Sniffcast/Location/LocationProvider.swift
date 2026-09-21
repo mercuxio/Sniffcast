@@ -13,6 +13,9 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
     private let geocoder = CLGeocoder()
     private var lastEmitted: CLLocation?
     private var running = false
+    private var retryTask: Task<Void, Never>?
+    private var retryDelay = LocationProvider.firstRetryDelay
+    private static let firstRetryDelay: Duration = .seconds(15)
 
     override init() {
         super.init()
@@ -40,7 +43,15 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
     func stop() {
         guard running else { return }
         running = false
+        cancelRetry()
         manager.stopMonitoringSignificantLocationChanges()
+    }
+
+    /// Starts the jitter filter from a persisted fix, so the first fix of a launch refetches
+    /// only if the Mac has actually moved since.
+    func seed(_ coordinate: Coordinate?) {
+        guard lastEmitted == nil, let coordinate else { return }
+        lastEmitted = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
     }
 
     /// One-shot re-fix (e.g. after wake), without changing monitoring.
@@ -62,7 +73,29 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
         }
     }
 
+    /// A failed fix is retried at 15 s, 30 s, 1 min… up to 5 min. Waiting on significant-change
+    /// monitoring instead can take minutes, and at login the first request always fails:
+    /// Wi-Fi, which a Mac locates itself by, isn't up yet.
+    private func scheduleRetry() {
+        guard running, retryTask == nil else { return }
+        let delay = retryDelay
+        retryDelay = min(retryDelay * 2, .seconds(300))
+        retryTask = Task { [weak self] in
+            try? await Task.sleep(for: delay)
+            guard let self, !Task.isCancelled else { return }
+            retryTask = nil
+            requestFix()
+        }
+    }
+
+    private func cancelRetry() {
+        retryTask?.cancel()
+        retryTask = nil
+        retryDelay = Self.firstRetryDelay
+    }
+
     private func handle(_ location: CLLocation) {
+        cancelRetry()
         // Ignore jitter below a kilometer: a new coordinate means a new fetch.
         if let lastEmitted, location.distance(from: lastEmitted) < 1_000 { return }
         lastEmitted = location
@@ -103,8 +136,9 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
     }
 
     nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
-        // kCLErrorLocationUnknown is transient; significant-change monitoring will retry.
-        guard (error as? CLError)?.code == .denied else { return }
-        MainActor.assumeIsolated { onStatus?(.denied) }
+        let denied = (error as? CLError)?.code == .denied
+        MainActor.assumeIsolated {
+            if denied { onStatus?(.denied) } else { scheduleRetry() }
+        }
     }
 }

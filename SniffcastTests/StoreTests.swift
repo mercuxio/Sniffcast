@@ -72,6 +72,24 @@ struct LocationsStoreTests {
         #expect(store.target(currentCoordinate: nil, locationDenied: false) == nil)
     }
 
+    /// At login Wi-Fi isn't up yet, so there's no fix for a while. The last known position,
+    /// persisted across launches, lets the first fetch go out right away.
+    @Test func lastKnownPositionIsTargetWhileWaitingForFix() throws {
+        LocationsStore(defaults: defaults).lastCurrentCoordinate = here
+        let store = LocationsStore(defaults: defaults)
+        let t = try #require(store.target(currentCoordinate: nil, locationDenied: false))
+        #expect(t.key == LocationsStore.currentKey)
+        #expect(t.coordinate == here)
+        #expect(t.isCurrent)
+    }
+
+    @Test func deniedIgnoresLastKnownPosition() {
+        let store = LocationsStore(defaults: defaults)
+        store.lastCurrentCoordinate = here
+        store.add(paris)
+        #expect(store.target(currentCoordinate: nil, locationDenied: true)?.name == "Paris")
+    }
+
     @Test func deniedWithNoSavedCitiesHasNoTarget() {
         let store = LocationsStore(defaults: defaults)
         #expect(store.target(currentCoordinate: nil, locationDenied: true) == nil)

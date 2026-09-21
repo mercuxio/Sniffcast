@@ -20,6 +20,7 @@ struct LocationTarget: Equatable, Sendable {
 final class LocationsStore {
     private enum Key {
         static let saved = "savedLocations", active = "activeLocation", currentName = "currentLocationName"
+        static let lastCurrentCoordinate = "lastCurrentCoordinate"
     }
     static let currentKey = "current"
     static let currentFallbackName = "Current Location"
@@ -31,6 +32,11 @@ final class LocationsStore {
     /// The place name for the device's location, from reverse geocoding. Persisted so the
     /// header shows a name at launch instead of waiting on a fix and a geocode.
     var currentName: String? { didSet { defaults.set(currentName, forKey: Key.currentName) } }
+    /// The device's last fix. Persisted so launch can fetch at once: at login Wi-Fi isn't up
+    /// yet, and a Mac can't locate itself without it.
+    var lastCurrentCoordinate: Coordinate? {
+        didSet { defaults.set(try? JSONEncoder().encode(lastCurrentCoordinate), forKey: Key.lastCurrentCoordinate) }
+    }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -38,6 +44,8 @@ final class LocationsStore {
             .flatMap { try? JSONDecoder().decode([SavedLocation].self, from: $0) } ?? []
         self.saved = saved
         currentName = defaults.string(forKey: Key.currentName)
+        lastCurrentCoordinate = defaults.data(forKey: Key.lastCurrentCoordinate)
+            .flatMap { try? JSONDecoder().decode(Coordinate.self, from: $0) }
         // A stored selection that no longer exists (or none at all) means current location.
         if let raw = defaults.string(forKey: Key.active), let id = UUID(uuidString: raw),
            saved.contains(where: { $0.id == id }) {
@@ -82,9 +90,10 @@ final class LocationsStore {
             return LocationTarget(key: location.id.uuidString, name: location.name,
                                   coordinate: location.coordinate, isCurrent: false)
         }
-        if let currentCoordinate {
+        // Until the first fix arrives, the last known position stands in, unless access is off.
+        if let coordinate = currentCoordinate ?? (locationDenied ? nil : lastCurrentCoordinate) {
             return LocationTarget(key: Self.currentKey, name: currentName ?? Self.currentFallbackName,
-                                  coordinate: currentCoordinate, isCurrent: true)
+                                  coordinate: coordinate, isCurrent: true)
         }
         if locationDenied, let first = saved.first {
             return LocationTarget(key: first.id.uuidString, name: first.name,
