@@ -4,6 +4,12 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5] — 2026-09-22
+
+### Fixed
+
+- In the Two Rows menu bar style, the temperature and AQI now line up on their last digit. The degree sign sits past the edge instead of lining up with the AQI.
+
 ## [1.1.4] — 2026-09-21
 
 ### Fixed
