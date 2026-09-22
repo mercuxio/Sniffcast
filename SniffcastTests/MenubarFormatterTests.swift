@@ -124,3 +124,14 @@ struct MenubarFormatterTests {
         #expect(content(try snapshot(), .full, stale: true).stale)
     }
 }
+
+/// Two Rows right-aligns the numbers and lets the unit hang past them.
+struct TwoRowsAlignmentTests {
+    @Test func splitsTrailingUnit() {
+        #expect(MenubarFormatter.splitTrailingUnit("29°") == ("29", "°"))
+        #expect(MenubarFormatter.splitTrailingUnit("-3°") == ("-3", "°"))
+        #expect(MenubarFormatter.splitTrailingUnit("219") == ("219", ""))
+        #expect(MenubarFormatter.splitTrailingUnit("—") == ("—", ""))
+        #expect(MenubarFormatter.splitTrailingUnit("") == ("", ""))
+    }
+}

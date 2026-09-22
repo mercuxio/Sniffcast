@@ -101,12 +101,18 @@ final class StatusItemController: NSObject {
         let rowFont = NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .regular)
         let symbol = NSImage(systemSymbolName: content.symbol, accessibilityDescription: nil)?
             .withSymbolConfiguration(symbolConfig)
-        let top = NSAttributedString(string: content.text, attributes: [.font: rowFont])
-        let bottom = NSAttributedString(string: content.aqiText ?? "", attributes: [.font: rowFont])
+        // Each row splits into its number and any trailing unit ("29" + "°"). The numbers share
+        // a right edge and the unit hangs past it, so "29°" and "219" line up on their digits.
+        let parts = [content.text, content.aqiText ?? ""].map(MenubarFormatter.splitTrailingUnit)
+        func width(_ string: String) -> CGFloat {
+            NSAttributedString(string: string, attributes: [.font: rowFont]).size().width
+        }
+        let numberWidth = parts.map { width($0.number) }.max() ?? 0
+        let unitWidth = parts.map { width($0.unit) }.max() ?? 0
 
         let gap: CGFloat = 4
         let symbolSize = symbol?.size ?? .zero
-        let textWidth = ceil(max(top.size().width, bottom.size().width))
+        let textWidth = ceil(numberWidth + unitWidth)
         let size = NSSize(width: ceil(symbolSize.width) + gap + textWidth, height: barHeight)
         let alpha: CGFloat = content.stale ? 0.5 : 1
 
@@ -127,19 +133,16 @@ final class StatusItemController: NSObject {
             }
             let rowHeight = barHeight / 2
             let textHeight = rowFont.ascender - rowFont.descender
-            // Right-aligned: both rows end at the image's trailing edge, so "29°" and "219"
-            // line up on their last digit however their widths differ.
-            let trailing = size.width
-            let rows: [(String, NSColor)] = [
-                (content.text, .labelColor),
-                (content.aqiText ?? "", content.band.map(AQIColors.nsColor) ?? .labelColor),
-            ]
-            for (index, (string, color)) in rows.enumerated() {
+            let numberEdge = size.width - unitWidth
+            let colors: [NSColor] = [.labelColor, content.band.map(AQIColors.nsColor) ?? .labelColor]
+            for (index, (part, color)) in zip(parts, colors).enumerated() {
                 let y = CGFloat(index) * rowHeight + (rowHeight - textHeight) / 2
-                let text = NSAttributedString(string: string, attributes: [
+                let attributes: [NSAttributedString.Key: Any] = [
                     .font: rowFont, .foregroundColor: color.withAlphaComponent(alpha),
-                ])
-                text.draw(at: NSPoint(x: trailing - text.size().width, y: y))
+                ]
+                let number = NSAttributedString(string: part.number, attributes: attributes)
+                number.draw(at: NSPoint(x: numberEdge - number.size().width, y: y))
+                NSAttributedString(string: part.unit, attributes: attributes).draw(at: NSPoint(x: numberEdge, y: y))
             }
             return true
         }

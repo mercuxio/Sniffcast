@@ -76,4 +76,12 @@ enum MenubarFormatter {
             }
         }
     }
+
+    /// "29°" → ("29", "°"); "219" → ("219", ""). A string with no digits ("—") is all number,
+    /// so it right-aligns with the digits above or below it.
+    static func splitTrailingUnit(_ string: String) -> (number: String, unit: String) {
+        guard let lastDigit = string.lastIndex(where: \.isNumber) else { return (string, "") }
+        let end = string.index(after: lastDigit)
+        return (String(string[..<end]), String(string[end...]))
+    }
 }
