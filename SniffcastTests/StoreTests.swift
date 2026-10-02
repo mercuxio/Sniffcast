@@ -126,6 +126,11 @@ struct LocationsStoreTests {
 struct SettingsStoreTests {
     let defaults = UserDefaults(suiteName: "sniffcast.tests.\(UUID().uuidString)")!
 
+    @Test func twoRowsSettingMigratesToThreeRows() {
+        defaults.set("twoRows", forKey: "menubarStyle")
+        #expect(SettingsStore(defaults: defaults, locale: Locale(identifier: "en_US")).menubarStyle == .threeRows)
+    }
+
     @Test func defaults_() {
         let s = SettingsStore(defaults: defaults, locale: Locale(identifier: "en_US"))
         #expect(s.menubarStyle == .full)

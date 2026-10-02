@@ -4,6 +4,12 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] — 2026-10-02
+
+### Added
+- UV in the menu bar, in every style: `UV5` after the temperature in Full, Compact and Rotating, coloured by exposure level.
+- Two Rows is now **Three Rows**: temperature, UV, then AQI, stacked. When UV is 0 (overnight) it drops back to the regular two rows. An existing Two Rows setting migrates automatically.
+
 ## [1.2.1] — 2026-10-02
 
 ### Added

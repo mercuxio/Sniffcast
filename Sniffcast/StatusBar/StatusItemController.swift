@@ -62,7 +62,7 @@ final class StatusItemController: NSObject {
                 .withSymbolConfiguration(Self.symbolConfig)
             button.image?.isTemplate = true
             button.attributedTitle = Self.title(for: content)
-            button.imagePosition = content.text.isEmpty && content.aqiText == nil ? .imageOnly : .imageLeading
+            button.imagePosition = content.text.isEmpty && content.aqiText == nil && content.uvText == nil ? .imageOnly : .imageLeading
         }
         // Dimmed, never blank, when data is stale.
         button.appearsDisabled = content.stale
@@ -88,22 +88,35 @@ final class StatusItemController: NSObject {
             if isDot { attributes[.baselineOffset] = 1.5 }
             result.append(NSAttributedString(string: " " + aqiText, attributes: attributes))
         }
+        if let uvText = content.uvText {
+            var attributes: [NSAttributedString.Key: Any] = [.font: font]
+            if let band = content.uvBand {
+                attributes[.foregroundColor] = AQIColors.nsColor(band).withAlphaComponent(content.stale ? 0.5 : 1)
+            }
+            result.append(NSAttributedString(string: " " + uvText, attributes: attributes))
+        }
         return result
     }
 
-    /// Two Rows style: symbol, then temperature over AQI, using Squiggle's two-row
-    /// metrics (10 pt regular monospaced digits, each row half the bar height, centred on the font's
-    /// own ascent and descent). Drawn as one image because a status button has a single
-    /// title line. The drawing handler runs at draw time, so `labelColor` and the band
-    /// colors resolve against the menubar's current appearance.
+    /// Three Rows style: symbol, then temperature over UV over AQI. Two rows use Squiggle's
+    /// metrics (10 pt regular monospaced digits, each row half the bar height, centred on the
+    /// font's own ascent and descent); a third row shrinks the text to 8 pt. A row with no data
+    /// is left out, so overnight (UV 0) the stack is the plain two rows. Drawn as one image
+    /// because a status button has a single title line. The drawing handler runs at draw
+    /// time, so `labelColor` and the band colors resolve against the menubar's current appearance.
     private static func stackedImage(for content: MenubarContent) -> NSImage {
         let barHeight = NSStatusBar.system.thickness
-        let rowFont = NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .regular)
         let symbol = NSImage(systemSymbolName: content.symbol, accessibilityDescription: nil)?
             .withSymbolConfiguration(symbolConfig)
+        let rows: [(text: String, color: NSColor)] = [
+            (content.text, .labelColor),
+            content.uvText.map { ($0, content.uvBand.map(AQIColors.nsColor) ?? .labelColor) },
+            content.aqiText.map { ($0, content.band.map(AQIColors.nsColor) ?? .labelColor) },
+        ].compactMap { $0 }
+        let rowFont = NSFont.monospacedDigitSystemFont(ofSize: rows.count > 2 ? 8 : 10, weight: .regular)
         // Each row splits into its number and any trailing unit ("29" + "°"). The numbers share
         // a right edge and the unit hangs past it, so "29°" and "219" line up on their digits.
-        let parts = [content.text, content.aqiText ?? ""].map(MenubarFormatter.splitTrailingUnit)
+        let parts = rows.map { MenubarFormatter.splitTrailingUnit($0.text) }
         func width(_ string: String) -> CGFloat {
             NSAttributedString(string: string, attributes: [.font: rowFont]).size().width
         }
@@ -131,14 +144,13 @@ final class StatusItemController: NSObject {
                             // unflipped symbol is drawn upside down.
                             respectFlipped: true, hints: nil)
             }
-            let rowHeight = barHeight / 2
+            let rowHeight = barHeight / CGFloat(max(rows.count, 1))
             let textHeight = rowFont.ascender - rowFont.descender
             let numberEdge = size.width - unitWidth
-            let colors: [NSColor] = [.labelColor, content.band.map(AQIColors.nsColor) ?? .labelColor]
-            for (index, (part, color)) in zip(parts, colors).enumerated() {
+            for (index, (part, row)) in zip(parts, rows).enumerated() {
                 let y = CGFloat(index) * rowHeight + (rowHeight - textHeight) / 2
                 let attributes: [NSAttributedString.Key: Any] = [
-                    .font: rowFont, .foregroundColor: color.withAlphaComponent(alpha),
+                    .font: rowFont, .foregroundColor: row.color.withAlphaComponent(alpha),
                 ]
                 let number = NSAttributedString(string: part.number, attributes: attributes)
                 number.draw(at: NSPoint(x: numberEdge - number.size().width, y: y))
@@ -159,6 +171,9 @@ final class StatusItemController: NSObject {
         if let aqi = snapshot.air?.aqi(settings.aqiScale) {
             let band = AQIScale.band(for: aqi, scale: settings.aqiScale)
             parts.append("AQI \(aqi), \(AQIScale.label(for: band, scale: settings.aqiScale))")
+        }
+        if let uv = snapshot.current.uvIndex, UVIndex.rounded(uv) > 0 {
+            parts.append("UV \(UVIndex.rounded(uv)), \(UVIndex.level(for: uv).label)")
         }
         if content.stale { parts.append("out of date") }
         return parts.joined(separator: ", ")

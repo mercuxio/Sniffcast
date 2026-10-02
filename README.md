@@ -16,7 +16,7 @@ silicon and Intel.
 
 ## Install
 
-**Download the release.** Get `Sniffcast-1.2.1.zip` from
+**Download the release.** Get `Sniffcast-1.3.0.zip` from
 [Releases](https://github.com/mercuxio/Sniffcast/releases), unzip it, and drag
 `Sniffcast.app` into `/Applications`.
 
@@ -42,9 +42,9 @@ for your location once more. Relaunching the same version doesn't.
 ## What it does
 
 - **Four menu bar styles.**
-  - **Full**: weather symbol, temperature, and `AQI 42`.
-  - **Two Rows**: the temperature over the AQI number, both at 10pt, the same
-    stacked layout Squiggle uses.
+  - **Full**: weather symbol, temperature, `UV5` and `AQI 42`.
+  - **Three Rows**: the temperature, UV and AQI number stacked at 8pt. When UV is 0
+    (overnight) it drops to two rows, temperature over AQI, at 10pt.
   - **Compact**: the temperature and a coloured dot for the AQI band.
   - **Rotating**: switches between the weather and the AQI every 8 seconds.
     The timer stops while the screen is locked or the display is asleep.
@@ -75,7 +75,7 @@ a crash.
 
 ### Settings
 
-- **Menubar style**: Full, Two Rows, Compact, or Rotating.
+- **Menubar style**: Full, Three Rows, Compact, or Rotating.
 - **Color-code AQI in menubar**: on by default.
 - **Show moon phase on partly cloudy nights**: off by default, so only clear
   and mainly clear nights show the moon.
@@ -183,7 +183,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Status
 
-Version 1.2.1. The test suite passes, and the app is in daily use against live
+Version 1.3.0. The test suite passes, and the app is in daily use against live
 Open-Meteo data.
 
 Releases include an ad-hoc signed `Sniffcast.app` in a zip; see

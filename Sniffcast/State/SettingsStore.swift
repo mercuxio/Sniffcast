@@ -42,6 +42,8 @@ final class SettingsStore {
         func raw<T: RawRepresentable>(_ key: String, _ fallback: T) -> T {
             Self.stored(defaults, key) ?? fallback
         }
+        // "Two Rows" became "Three Rows" when UV joined the stack.
+        if defaults.string(forKey: Key.style) == "twoRows" { defaults.set(MenubarStyle.threeRows.rawValue, forKey: Key.style) }
         menubarStyle = raw(Key.style, MenubarStyle.full)
         refreshInterval = raw(Key.interval, RefreshInterval.default)
         temperatureUnit = raw(Key.temperature, d.temperature)

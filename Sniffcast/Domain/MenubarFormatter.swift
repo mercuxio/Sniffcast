@@ -1,13 +1,13 @@
 import Foundation
 
 enum MenubarStyle: String, CaseIterable, Sendable, Identifiable {
-    case full, twoRows, compact, rotating
+    case full, threeRows, compact, rotating
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .full: "Full"
-        case .twoRows: "Two Rows"
+        case .threeRows: "Three Rows"
         case .compact: "Compact"
         case .rotating: "Rotating"
         }
@@ -27,7 +27,11 @@ struct MenubarContent: Equatable, Sendable {
     var aqiText: String?
     /// Nil means untinted: no AQI, or the user chose monochrome.
     var band: AQIBand?
-    /// Temperature over AQI in two rows (full style), instead of side by side.
+    /// Rendered after the AQI, tinted by `uvBand`. Nil when the UV index is unknown or 0 (overnight),
+    /// so the stack falls back to two rows.
+    var uvText: String?
+    var uvBand: AQIBand?
+    /// Temperature, AQI and UV in rows (Three Rows style), instead of side by side.
     var stacked: Bool = false
     var stale: Bool
 }
@@ -56,23 +60,35 @@ enum MenubarFormatter {
         let temp = Units.formatTemperature(snapshot.current.temperature, in: temperatureUnit)
         let aqi = snapshot.air?.aqi(scale)
         let band = monochrome ? nil : aqi.map { AQIScale.band(for: $0, scale: scale) }
+        // A UV of 0 is left out everywhere: "UV 0" is just noise, and Three Rows drops back to two.
+        let uv = snapshot.current.uvIndex.flatMap { value -> (value: Int, band: AQIBand)? in
+            UVIndex.rounded(value) > 0 ? (UVIndex.rounded(value), UVIndex.level(for: value).band) : nil
+        }
+        let uvBand = monochrome ? nil : uv?.band
+        let inlineUV = uv.map { "UV\($0.value)" }
 
-        let weatherOnly = MenubarContent(symbol: symbol, text: temp, aqiText: nil, band: nil, stale: stale)
-        guard let aqi else { return weatherOnly }
+        func inline(aqiText: String?) -> MenubarContent {
+            MenubarContent(symbol: symbol, text: temp, aqiText: aqiText, band: aqiText == nil ? nil : band,
+                           uvText: inlineUV, uvBand: inlineUV == nil ? nil : uvBand, stale: stale)
+        }
 
         switch style {
         case .full:
-            return MenubarContent(symbol: symbol, text: temp, aqiText: "AQI \(aqi)", band: band, stale: stale)
-        case .twoRows:
-            // Stacked under the temperature, the color and position say "AQI"; the label doesn't need to.
-            return MenubarContent(symbol: symbol, text: temp, aqiText: "\(aqi)", band: band, stacked: true, stale: stale)
+            return inline(aqiText: aqi.map { "AQI \($0)" })
+        case .threeRows:
+            // Stacked, the color and position say which row is which; the labels don't need to.
+            let rows = 1 + (aqi == nil ? 0 : 1) + (uv == nil ? 0 : 1)
+            return MenubarContent(symbol: symbol, text: temp, aqiText: aqi.map { "\($0)" }, band: aqi == nil ? nil : band,
+                                  uvText: uv.map { "UV\($0.value)" }, uvBand: uvBand, stacked: rows > 1, stale: stale)
         case .compact:
             // Without color the dot carries no information, so show the number instead.
-            return MenubarContent(symbol: symbol, text: temp, aqiText: monochrome ? "\(aqi)" : "●", band: band, stale: stale)
+            return inline(aqiText: aqi.map { monochrome ? "\($0)" : "●" })
         case .rotating:
             switch phase {
-            case .weather: return weatherOnly
-            case .air: return MenubarContent(symbol: airSymbol, text: "", aqiText: "\(aqi)", band: band, stale: stale)
+            case .weather: return inline(aqiText: nil)
+            case .air:
+                guard let aqi else { return inline(aqiText: nil) }
+                return MenubarContent(symbol: airSymbol, text: "", aqiText: "\(aqi)", band: band, stale: stale)
             }
         }
     }

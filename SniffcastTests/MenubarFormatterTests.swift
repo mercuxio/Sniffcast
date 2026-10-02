@@ -61,24 +61,63 @@ struct MenubarFormatterTests {
 
     @Test func full() throws {
         let c = content(try snapshot(), .full)
-        #expect(c == MenubarContent(symbol: "cloud.sun.fill", text: "60°", aqiText: "AQI 31", band: .good, stale: false))
+        #expect(c == MenubarContent(symbol: "cloud.sun.fill", text: "60°", aqiText: "AQI 31", band: .good,
+                                    uvText: "UV5", uvBand: .moderate, stale: false))
     }
 
-    @Test func twoRowsStacksBareNumber() throws {
-        let c = content(try snapshot(), .twoRows)
+    @Test func threeRowsStacksBareNumbers() throws {
+        let c = content(try snapshot(), .threeRows)
         #expect(c == MenubarContent(symbol: "cloud.sun.fill", text: "60°", aqiText: "31", band: .good,
-                                    stacked: true, stale: false))
+                                    uvText: "UV5", uvBand: .moderate, stacked: true, stale: false))
     }
 
-    @Test func twoRowsWithoutAirIsSingleRow() throws {
-        let c = content(try snapshot(air: false), .twoRows)
+    @Test func threeRowsDropsToTwoWhenUVIsZero() throws {
+        var s = try snapshot()
+        s.current.uvIndex = 0.3
+        let c = content(s, .threeRows)
+        #expect(c.uvText == nil)
+        #expect(c.aqiText == "31")
+        #expect(c.stacked)
+    }
+
+    @Test func threeRowsWithoutAirKeepsTemperatureOverUV() throws {
+        let c = content(try snapshot(air: false), .threeRows)
         #expect(c.aqiText == nil)
+        #expect(c.uvText == "UV5")
+        #expect(c.stacked)
+    }
+
+    @Test func threeRowsWithOnlyTemperatureIsSingleRow() throws {
+        var s = try snapshot(air: false)
+        s.current.uvIndex = nil
+        let c = content(s, .threeRows)
+        #expect(c.aqiText == nil)
+        #expect(c.uvText == nil)
         #expect(!c.stacked)
     }
 
     @Test(arguments: [MenubarStyle.full, .compact, .rotating])
-    func onlyTwoRowsStacks(style: MenubarStyle) throws {
+    func onlyThreeRowsStacks(style: MenubarStyle) throws {
         #expect(!content(try snapshot(), style).stacked)
+    }
+
+    @Test func compactAndFullShowUVInline() throws {
+        #expect(content(try snapshot(), .compact).uvText == "UV5")
+        #expect(content(try snapshot(), .rotating, phase: .weather).uvText == "UV5")
+        #expect(content(try snapshot(), .rotating, phase: .air).uvText == nil)
+    }
+
+    @Test(arguments: [MenubarStyle.full, .compact, .rotating])
+    func zeroUVIsHiddenInline(style: MenubarStyle) throws {
+        var s = try snapshot()
+        s.current.uvIndex = 0
+        #expect(content(s, style).uvText == nil)
+    }
+
+    @Test func monochromeDropsUVColor() throws {
+        let c = content(try snapshot(), .full, monochrome: true)
+        #expect(c.uvText == "UV5")
+        #expect(c.uvBand == nil)
     }
 
     @Test func compactUsesDot() throws {
@@ -125,8 +164,8 @@ struct MenubarFormatterTests {
     }
 }
 
-/// Two Rows right-aligns the numbers and lets the unit hang past them.
-struct TwoRowsAlignmentTests {
+/// Three Rows right-aligns the numbers and lets the unit hang past them.
+struct StackedAlignmentTests {
     @Test func splitsTrailingUnit() {
         #expect(MenubarFormatter.splitTrailingUnit("29°") == ("29", "°"))
         #expect(MenubarFormatter.splitTrailingUnit("-3°") == ("-3", "°"))
