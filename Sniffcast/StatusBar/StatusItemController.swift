@@ -69,8 +69,11 @@ final class StatusItemController: NSObject {
         button.setAccessibilityLabel(accessibilityLabel(for: content))
     }
 
+    /// Text size for the single-line styles (Full, Compact, Rotating); the system default is 13.
+    private static let inlineFontSize: CGFloat = 11
+
     private static func title(for content: MenubarContent) -> NSAttributedString {
-        let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+        let font = NSFont.monospacedDigitSystemFont(ofSize: inlineFontSize, weight: .regular)
         let result = NSMutableAttributedString()
         if !content.text.isEmpty {
             result.append(NSAttributedString(string: " " + content.text, attributes: [.font: font]))
@@ -78,8 +81,8 @@ final class StatusItemController: NSObject {
         if let aqiText = content.aqiText {
             let isDot = aqiText == "●"
             let aqiFont = isDot
-                ? NSFont.systemFont(ofSize: 9)
-                : NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+                ? NSFont.systemFont(ofSize: 8)
+                : NSFont.monospacedDigitSystemFont(ofSize: inlineFontSize, weight: .regular)
             var attributes: [NSAttributedString.Key: Any] = [.font: aqiFont]
             // No band means monochrome: leave the color to the button so it matches the menubar.
             if let band = content.band {

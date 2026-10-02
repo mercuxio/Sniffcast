@@ -4,6 +4,11 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] — 2026-10-02
+
+### Changed
+- Full, Compact and Rotating menu bar text is now 11 pt instead of 13 pt, so the added UV fits more comfortably.
+
 ## [1.3.0] — 2026-10-02
 
 ### Added
