@@ -4,6 +4,13 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] — 2026-10-02
+
+### Added
+
+- UV in the next-12-hours strip: a small coloured number under each hour, blank overnight.
+- The 7-day list shows UV as a range from 3, where sun protection starts, up to the day's peak (for example "UV 3–9"). Days that never reach 3 show just the peak.
+
 ## [1.2.0] — 2026-10-02
 
 ### Added

@@ -116,5 +116,7 @@ struct MapperTests {
         #expect(s.current.uvIndex == 5.4)
         #expect(s.daily[0].uvMax == 6.35)
         #expect(s.daily[3].uvMax == nil) // Open-Meteo sent null for that day
+        #expect(s.hourly[6].uvIndex == 5.4)
+        #expect(s.hourly[11].uvIndex == nil)
     }
 }

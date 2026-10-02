@@ -26,3 +26,16 @@ struct UVIndexTests {
         #expect(bands == bands.sorted() && Set(bands).count == 5)
     }
 }
+
+@Suite struct UVRangeTests {
+    @Test func rangeRunsFromThreeUpToThePeak() {
+        #expect(UVIndex.rangeLabel(peak: 8.6) == "3–9")
+        #expect(UVIndex.rangeLabel(peak: 3.6) == "3–4")
+    }
+
+    @Test func singleNumberAtOrBelowTheThreshold() {
+        #expect(UVIndex.rangeLabel(peak: 3.0) == "3")
+        #expect(UVIndex.rangeLabel(peak: 2.4) == "2")
+        #expect(UVIndex.rangeLabel(peak: 0.2) == "0")
+    }
+}

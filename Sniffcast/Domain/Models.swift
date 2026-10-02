@@ -50,6 +50,7 @@ struct HourlyPoint: Equatable, Sendable, Identifiable {
     var isDay: Bool
     var usAQI: Int?
     var euAQI: Int?
+    var uvIndex: Double?
 
     var id: Date { time }
 

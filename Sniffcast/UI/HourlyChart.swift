@@ -49,6 +49,14 @@ struct HourlyChart: View {
                         } else {
                             Color.clear.frame(width: 5, height: 5)
                         }
+                        // Blank overnight, when it would be a column of zeros.
+                        if let uv = point.uvIndex, UVIndex.rounded(uv) > 0 {
+                            Text("\(UVIndex.rounded(uv))")
+                                .font(.caption2.weight(.semibold).monospacedDigit())
+                                .foregroundStyle(AQIColors.color(UVIndex.level(for: uv).band))
+                        } else {
+                            Text(" ").font(.caption2)
+                        }
                         Text(Formatting.hour(point.time, in: snapshot.timeZone))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
@@ -66,6 +74,7 @@ struct HourlyChart: View {
             + "\(Units.formatTemperature(point.temperature, in: settings.temperatureUnit)), "
             + WeatherCode.description(point.weatherCode)
         if let aqi = point.aqi(settings.aqiScale) { text += ", AQI \(aqi)" }
+        if let uv = point.uvIndex, UVIndex.rounded(uv) > 0 { text += ", UV \(UVIndex.rounded(uv))" }
         return text
     }
 }

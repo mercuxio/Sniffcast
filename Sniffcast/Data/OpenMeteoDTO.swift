@@ -18,6 +18,7 @@ struct ForecastResponse: Decodable, Sendable {
         var temperature_2m: [Double?]?
         var weather_code: [Int?]?
         var is_day: [Int?]?
+        var uv_index: [Double?]?
     }
     struct Daily: Decodable, Sendable {
         var time: [Int]
