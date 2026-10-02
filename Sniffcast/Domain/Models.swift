@@ -40,6 +40,7 @@ struct CurrentConditions: Equatable, Sendable {
     var weatherCode: Int
     var windSpeed: Double
     var isDay: Bool
+    var uvIndex: Double?
 }
 
 struct HourlyPoint: Equatable, Sendable, Identifiable {
@@ -60,6 +61,8 @@ struct DailyPoint: Equatable, Sendable, Identifiable {
     var weatherCode: Int
     var high: Double
     var low: Double
+    /// The day's peak UV index.
+    var uvMax: Double?
     var pollen: Pollen?
 
     var id: Date { date }

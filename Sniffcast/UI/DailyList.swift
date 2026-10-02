@@ -25,12 +25,14 @@ struct DailyList: View {
                         RangeBar(range: range, low: day.low, high: day.high)
                         Text(Units.formatTemperature(day.high, in: unit))
                             .frame(width: 34, alignment: .leading)
+                        UVPeak(value: day.uvMax)
                     }
                     .font(.callout.monospacedDigit())
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel("\(Formatting.weekday(day.date, in: snapshot.timeZone)), "
                         + "\(WeatherCode.description(day.weatherCode)), low "
-                        + "\(Units.formatTemperature(day.low, in: unit)), high \(Units.formatTemperature(day.high, in: unit))")
+                        + "\(Units.formatTemperature(day.low, in: unit)), high \(Units.formatTemperature(day.high, in: unit))"
+                        + (day.uvMax.map { ", peak UV \(UVIndex.rounded($0)), \(UVIndex.level(for: $0).label)" } ?? ""))
 
                     if let pollen = day.pollen, !pollen.entries.isEmpty {
                         PollenRow(entries: pollen.entries)
@@ -39,6 +41,25 @@ struct DailyList: View {
                 }
             }
         }
+    }
+}
+
+/// The day's peak UV index, colored by exposure level. Keeps its width when empty so the
+/// temperature bars stay aligned from row to row.
+private struct UVPeak: View {
+    let value: Double?
+
+    var body: some View {
+        Group {
+            if let value {
+                Text("UV \(UVIndex.rounded(value))")
+                    .foregroundStyle(AQIColors.color(UVIndex.level(for: value).band))
+            } else {
+                Text("")
+            }
+        }
+        .font(.caption.monospacedDigit())
+        .frame(width: 38, alignment: .trailing)
     }
 }
 

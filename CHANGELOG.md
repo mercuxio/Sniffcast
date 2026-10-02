@@ -4,6 +4,12 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] — 2026-10-02
+
+### Added
+
+- UV index. The current card shows the UV reading, hidden at night when it would read 0, and each day in the 7-day list shows its peak UV. Both are coloured by exposure level (Low, Moderate, High, Very high, Extreme).
+
 ## [1.1.5] — 2026-09-22
 
 ### Fixed

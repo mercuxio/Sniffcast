@@ -110,4 +110,11 @@ struct MapperTests {
         let p = Pollen(alder: nil, birch: 3, grass: 12.5, mugwort: nil, olive: nil, ragweed: 0)
         #expect(p.entries.map(\.name) == ["Birch", "Grass", "Ragweed"])
     }
+
+    @Test func mapsCurrentAndDailyPeakUV() throws {
+        let s = try london()
+        #expect(s.current.uvIndex == 5.4)
+        #expect(s.daily[0].uvMax == 6.35)
+        #expect(s.daily[3].uvMax == nil) // Open-Meteo sent null for that day
+    }
 }

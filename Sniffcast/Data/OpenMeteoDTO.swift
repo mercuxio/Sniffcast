@@ -11,6 +11,7 @@ struct ForecastResponse: Decodable, Sendable {
         var weather_code: Int?
         var wind_speed_10m: Double?
         var is_day: Int?
+        var uv_index: Double?
     }
     struct Hourly: Decodable, Sendable {
         var time: [Int]
@@ -23,6 +24,7 @@ struct ForecastResponse: Decodable, Sendable {
         var weather_code: [Int?]?
         var temperature_2m_max: [Double?]?
         var temperature_2m_min: [Double?]?
+        var uv_index_max: [Double?]?
     }
     var latitude: Double?
     var timezone: String?

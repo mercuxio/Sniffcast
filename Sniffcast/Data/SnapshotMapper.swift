@@ -41,7 +41,8 @@ enum SnapshotMapper {
             humidity: c.relative_humidity_2m ?? 0,
             weatherCode: c.weather_code ?? -1,
             windSpeed: c.wind_speed_10m ?? 0,
-            isDay: (c.is_day ?? 1) == 1
+            isDay: (c.is_day ?? 1) == 1,
+            uvIndex: c.uv_index
         )
 
         // Air-quality hourly data starts at local midnight; index it by timestamp and join.
@@ -77,6 +78,7 @@ enum SnapshotMapper {
                     weatherCode: value(d.weather_code, i) ?? -1,
                     high: high,
                     low: low,
+                    uvMax: value(d.uv_index_max, i),
                     pollen: airHourly.flatMap { pollen(in: $0, from: t, to: end) }
                 ))
             }

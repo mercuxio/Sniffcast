@@ -39,6 +39,13 @@ struct CurrentCard: View {
                   systemImage: "thermometer.medium")
             Label("\(current.humidity)%", systemImage: "humidity")
             Label(Units.formatWind(current.windSpeed, in: settings.windUnit), systemImage: "wind")
+            // Hidden at night and under heavy cloud, when it would just read "UV 0".
+            if let uv = current.uvIndex, UVIndex.rounded(uv) > 0 {
+                let level = UVIndex.level(for: uv)
+                Label("UV \(UVIndex.rounded(uv))", systemImage: "sun.max")
+                    .foregroundStyle(AQIColors.color(level.band))
+                    .accessibilityLabel("UV index \(UVIndex.rounded(uv)), \(level.label)")
+            }
         }
         .font(.callout)
         .foregroundStyle(.secondary)
