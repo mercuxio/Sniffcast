@@ -65,7 +65,7 @@ private struct GeneralSettings: View {
             }
 
             Section("AQI map") {
-                SecureField("WAQI token", text: $settings.waqiToken, prompt: Text("Paste token to show a map"))
+                TextField("WAQI token", text: $settings.waqiToken, prompt: Text("Paste token to show a map"))
                 HStack {
                     Text("Adds an AQI heat map to the panel and uses the nearest station's AQI (US scale) instead of the model's. Requests go to api.waqi.info with your token.")
                     Link("Get a free token", destination: AQIMap.tokenRequestURL)

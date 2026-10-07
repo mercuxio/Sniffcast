@@ -4,6 +4,11 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] — 2026-10-07
+
+### Changed
+- The WAQI token in Settings is now shown as plain text instead of being masked, so you can see what you pasted.
+
 ## [1.5.0] — 2026-10-07
 
 ### Added
