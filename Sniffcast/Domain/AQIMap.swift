@@ -76,18 +76,22 @@ enum AQIMap {
     /// A point's AQI by inverse-distance weighting of the stations, with how much to trust it.
     /// `confidence` is 1 within `fullKm` of a station and fades to 0 at `fadeKm`, so the heat map
     /// goes transparent where no station is near instead of painting a guess.
+    private static let softKm = 6.0
+
     static func interpolate(latitude: Double, longitude: Double, stations: [StationReading],
                             fullKm: Double = 8, fadeKm: Double = 35) -> (aqi: Double, confidence: Double)? {
         var weightSum = 0.0, valueSum = 0.0, nearest = Double.infinity
         for s in stations {
-            let d = max(distanceKm(latitude, longitude, s.latitude, s.longitude), 0.5)
+            let d = distanceKm(latitude, longitude, s.latitude, s.longitude)
             nearest = min(nearest, d)
-            let w = 1 / (d * d)
+            // Softened so the field has no sharp peaks at the stations themselves.
+            let w = 1 / (d * d + softKm * softKm)
             weightSum += w
             valueSum += w * Double(s.aqi)
         }
         guard weightSum > 0, nearest < fadeKm else { return nil }
-        let confidence = nearest <= fullKm ? 1 : 1 - (nearest - fullKm) / (fadeKm - fullKm)
+        let t = nearest <= fullKm ? 0 : (nearest - fullKm) / (fadeKm - fullKm)
+        let confidence = 1 - t * t * (3 - 2 * t)
         return (valueSum / weightSum, confidence)
     }
 

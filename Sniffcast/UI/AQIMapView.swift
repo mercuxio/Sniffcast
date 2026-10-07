@@ -19,8 +19,26 @@ private final class HeatOverlay: NSObject, MKOverlay {
         boundingMapRect = MKMapRect(x: tl.x, y: tl.y, width: br.x - tl.x, height: br.y - tl.y)
     }
 
+    /// A continuous scale through the band colours, anchored at each band's midpoint, so
+    /// 152 and 196 read differently even though both are "unhealthy".
+    private static func color(forAQI aqi: Double) -> NSColor {
+        let anchors: [(Double, AQIBand)] = [(25, .good), (75, .moderate), (125, .sensitive),
+                                            (175, .unhealthy), (250, .veryUnhealthy), (400, .hazardous)]
+        func rgb(_ band: AQIBand) -> NSColor { AQIColors.nsColor(band).usingColorSpace(.sRGB) ?? .gray }
+        if aqi <= anchors[0].0 { return rgb(anchors[0].1) }
+        for i in 1..<anchors.count where aqi <= anchors[i].0 {
+            let (a0, b0) = anchors[i - 1], (a1, b1) = anchors[i]
+            let t = CGFloat((aqi - a0) / (a1 - a0))
+            let c0 = rgb(b0), c1 = rgb(b1)
+            return NSColor(srgbRed: c0.redComponent + (c1.redComponent - c0.redComponent) * t,
+                           green: c0.greenComponent + (c1.greenComponent - c0.greenComponent) * t,
+                           blue: c0.blueComponent + (c1.blueComponent - c0.blueComponent) * t, alpha: 1)
+        }
+        return rgb(anchors[anchors.count - 1].1)
+    }
+
     /// A low-resolution RGBA grid; drawing it scaled up with interpolation gives the smooth look.
-    func image(columns: Int = 72, rows: Int = 72) -> CGImage? {
+    func image(columns: Int = 96, rows: Int = 96) -> CGImage? {
         var pixels = [UInt8](repeating: 0, count: columns * rows * 4)
         let rect = boundingMapRect
         for row in 0..<rows {
@@ -30,9 +48,8 @@ private final class HeatOverlay: NSObject, MKOverlay {
                 let c = point.coordinate
                 guard let v = AQIMap.interpolate(latitude: c.latitude, longitude: c.longitude, stations: stations)
                 else { continue }
-                let band = AQIScale.band(for: Int(v.aqi.rounded()), scale: .us)
-                let color = AQIColors.nsColor(band).usingColorSpace(.sRGB) ?? .gray
-                let alpha = 0.62 * v.confidence
+                let color = Self.color(forAQI: v.aqi)
+                let alpha = 0.55 * v.confidence
                 let i = (row * columns + col) * 4
                 // Premultiplied RGBA.
                 pixels[i] = UInt8(color.redComponent * alpha * 255)
@@ -136,7 +153,7 @@ struct AQIMapSection: View {
 
     @State private var stations: [StationReading] = []
     @State private var loaded = false
-    private static let halfSpan = 0.5
+    private static let halfSpan = 1.0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
