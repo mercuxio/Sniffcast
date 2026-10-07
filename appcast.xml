@@ -3,6 +3,15 @@
   <channel>
     <title>Sniffcast</title>
     <item>
+      <title>Sniffcast 1.7.1</title>
+      <pubDate>Wed, 07 Oct 2026 07:15:06 +0000</pubDate>
+      <sparkle:version>23</sparkle:version>
+      <sparkle:shortVersionString>1.7.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>https://github.com/mercuxio/Sniffcast/releases/tag/v1.7.1</sparkle:releaseNotesLink>
+      <enclosure url="https://github.com/mercuxio/Sniffcast/releases/download/v1.7.1/Sniffcast-1.7.1.zip" type="application/octet-stream" sparkle:edSignature="2BxP8hU4GZxNFJnldAF5mMXIcFCI7ki/oIlTW6L05kyxi8nw3MJ38oDsN3Utqn5TnQnEXm4OnQ00W+HKAoH4Ag==" length="3758035"/>
+    </item>
+    <item>
       <title>Sniffcast 1.7.0</title>
       <pubDate>Wed, 07 Oct 2026 06:56:08 +0000</pubDate>
       <sparkle:version>22</sparkle:version>

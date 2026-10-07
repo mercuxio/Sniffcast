@@ -4,6 +4,11 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.1] — 2026-10-07
+
+### Changed
+- First release delivered through the in-app updater; no functional changes from 1.7.0.
+
 ## [1.7.0] — 2026-10-07
 
 ### Added
