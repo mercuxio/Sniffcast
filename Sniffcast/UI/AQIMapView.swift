@@ -126,7 +126,10 @@ struct AQIMapView: NSViewRepresentable {
     let latitude: Double
     let longitude: Double
     let stations: [StationReading]
+    /// The box the stations were fetched for; the heat overlay covers exactly this.
+    let coverage: Coordinate
     let halfSpanDegrees: Double
+    let onRegionChange: (Coordinate, Double) -> Void
 
     func makeNSView(context: Context) -> MKMapView {
         let map = MKMapView()
@@ -143,6 +146,7 @@ struct AQIMapView: NSViewRepresentable {
     func updateNSView(_ map: MKMapView, context: Context) {
         let center = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         let coordinator = context.coordinator
+        coordinator.onRegionChange = onRegionChange
         if coordinator.center?.latitude != latitude || coordinator.center?.longitude != longitude {
             map.removeAnnotations(map.annotations.filter { !($0 is StationAnnotation) })
             let pin = MKPointAnnotation()
@@ -153,19 +157,19 @@ struct AQIMapView: NSViewRepresentable {
             coordinator.center = center
             coordinator.stations = nil
         }
-        if coordinator.stations != stations {
+        let box = [coverage.latitude, coverage.longitude, halfSpanDegrees]
+        if coordinator.stations != stations || coordinator.box != box {
+            coordinator.box = box
             map.removeOverlays(map.overlays)
             if !stations.isEmpty {
-                let lonSpan = halfSpanDegrees * 2 / max(cos(latitude * .pi / 180), 0.2)
-                let region = MKCoordinateRegion(center: center,
+                let lonSpan = halfSpanDegrees * 2 / max(cos(coverage.latitude * .pi / 180), 0.2)
+                let region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: coverage.latitude, longitude: coverage.longitude),
                                                 span: MKCoordinateSpan(latitudeDelta: halfSpanDegrees * 2, longitudeDelta: lonSpan))
                 map.addOverlay(HeatOverlay(stations: stations, region: region), level: .aboveRoads)
             }
             map.removeAnnotations(map.annotations.filter { $0 is StationAnnotation })
-            // Only the stations that fall in the visible area, to keep the badges from crowding.
-            map.addAnnotations(stations
-                .filter { AQIMap.distanceKm(latitude, longitude, $0.latitude, $0.longitude) <= 70 }
-                .map(StationAnnotation.init))
+            // Every station; MapKit hides overlapping badges and reveals them as you zoom in.
+            map.addAnnotations(stations.map(StationAnnotation.init))
             coordinator.stations = stations
         }
     }
@@ -175,6 +179,13 @@ struct AQIMapView: NSViewRepresentable {
     final class Coordinator: NSObject, MKMapViewDelegate {
         var center: CLLocationCoordinate2D?
         var stations: [StationReading]?
+        var box: [Double] = []
+        var onRegionChange: ((Coordinate, Double) -> Void)?
+
+        func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+            let r = mapView.region
+            onRegionChange?(Coordinate(latitude: r.center.latitude, longitude: r.center.longitude), r.span.latitudeDelta / 2)
+        }
 
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
             guard let station = annotation as? StationAnnotation else {
@@ -191,6 +202,7 @@ struct AQIMapView: NSViewRepresentable {
             view.image = stationBadge(aqi: station.aqi)
             view.canShowCallout = false
             view.displayPriority = .defaultLow
+            view.collisionMode = .rectangle
             return view
         }
 
@@ -210,21 +222,50 @@ struct AQIMapSection: View {
 
     @State private var stations: [StationReading] = []
     @State private var loaded = false
-    private static let halfSpan = 1.0
+    @State private var coverage = Coordinate(latitude: 0, longitude: 0)
+    @State private var halfSpan = 1.0
+    @State private var refetch: Task<Void, Never>?
+    private static let minHalfSpan = 1.0
+    private static let maxHalfSpan = 3.0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             SectionHeader(title: "AQI map")
-            AQIMapView(latitude: latitude, longitude: longitude, stations: stations, halfSpanDegrees: Self.halfSpan)
+            AQIMapView(latitude: latitude, longitude: longitude, stations: stations,
+                       coverage: coverage, halfSpanDegrees: halfSpan, onRegionChange: regionChanged)
                 .frame(height: 150)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .accessibilityLabel("Heat map of air quality around this location")
             Text(caption).font(.caption2).foregroundStyle(.tertiary).fixedSize(horizontal: false, vertical: true)
         }
         .task(id: "\(latitude),\(longitude),\(token)") {
-            stations = await WAQIClient().stations(around: Coordinate(latitude: latitude, longitude: longitude),
-                                                   halfSpanDegrees: Self.halfSpan, token: token)
+            let here = Coordinate(latitude: latitude, longitude: longitude)
+            let fetched = await WAQIClient().stations(around: here, halfSpanDegrees: Self.minHalfSpan, token: token)
+            coverage = here
+            halfSpan = Self.minHalfSpan
+            stations = fetched
             loaded = true
+        }
+    }
+
+    /// Zooming out or panning past the fetched box loads the stations for what is now visible.
+    private func regionChanged(center: Coordinate, half: Double) {
+        guard loaded else { return }
+        let wanted = min(max(half * 1.3, Self.minHalfSpan), Self.maxHalfSpan)
+        let zoomedOut = wanted > halfSpan * 1.05
+        let movedLat = abs(center.latitude - coverage.latitude) > halfSpan * 0.5
+        let movedLon = abs(center.longitude - coverage.longitude) * max(cos(center.latitude * .pi / 180), 0.2) > halfSpan * 0.5
+        guard zoomedOut || movedLat || movedLon else { return }
+        refetch?.cancel()
+        refetch = Task {
+            try? await Task.sleep(for: .milliseconds(600))
+            guard !Task.isCancelled else { return }
+            let span = max(wanted, halfSpan)
+            let fetched = await WAQIClient().stations(around: center, halfSpanDegrees: span, token: token)
+            guard !Task.isCancelled, !fetched.isEmpty else { return }
+            coverage = center
+            halfSpan = span
+            stations = fetched
         }
     }
 

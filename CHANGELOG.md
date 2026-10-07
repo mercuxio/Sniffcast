@@ -4,6 +4,11 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.2] — 2026-10-07
+
+### Changed
+- Zooming the panel map now shows every station's AQI badge (overlapping ones appear as you zoom in), and zooming out or panning loads the stations and heat map for the newly visible area.
+
 ## [1.6.1] — 2026-10-07
 
 ### Changed
