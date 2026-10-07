@@ -38,7 +38,7 @@ private final class HeatOverlay: NSObject, MKOverlay {
     }
 
     /// A low-resolution RGBA grid; drawing it scaled up with interpolation gives the smooth look.
-    func image(columns: Int = 96, rows: Int = 96) -> CGImage? {
+    func image(columns: Int = 128, rows: Int = 128) -> CGImage? {
         var pixels = [UInt8](repeating: 0, count: columns * rows * 4)
         let rect = boundingMapRect
         for row in 0..<rows {
@@ -160,17 +160,13 @@ struct AQIMapView: NSViewRepresentable {
         let box = [coverage.latitude, coverage.longitude, halfSpanDegrees]
         if coordinator.stations != stations || coordinator.box != box {
             coordinator.box = box
-            map.removeOverlays(map.overlays)
-            if !stations.isEmpty {
-                let lonSpan = halfSpanDegrees * 2 / max(cos(coverage.latitude * .pi / 180), 0.2)
-                let region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: coverage.latitude, longitude: coverage.longitude),
-                                                span: MKCoordinateSpan(latitudeDelta: halfSpanDegrees * 2, longitudeDelta: lonSpan))
-                map.addOverlay(HeatOverlay(stations: stations, region: region), level: .aboveRoads)
-            }
+            coordinator.stations = stations
+            coordinator.refreshHeat(map, force: true)
+            // Again once the view has its real size, so the overlay covers the final visible area.
+            DispatchQueue.main.async { [weak map] in if let map { coordinator.refreshHeat(map, force: true) } }
             map.removeAnnotations(map.annotations.filter { $0 is StationAnnotation })
             // Every station; MapKit hides overlapping badges and reveals them as you zoom in.
             map.addAnnotations(stations.map(StationAnnotation.init))
-            coordinator.stations = stations
         }
     }
 
@@ -182,7 +178,29 @@ struct AQIMapView: NSViewRepresentable {
         var box: [Double] = []
         var onRegionChange: ((Coordinate, Double) -> Void)?
 
+        private var heatRegion: MKCoordinateRegion?
+
+        /// Re-renders the colour field for what is on screen (plus a margin) so it stays sharp when
+        /// zoomed in and keeps covering the map when panned or zoomed out.
+        func refreshHeat(_ map: MKMapView, force: Bool = false) {
+            let v = map.region
+            if !force, let h = heatRegion {
+                let inside = abs(v.center.latitude - h.center.latitude) + v.span.latitudeDelta / 2 <= h.span.latitudeDelta / 2
+                    && abs(v.center.longitude - h.center.longitude) + v.span.longitudeDelta / 2 <= h.span.longitudeDelta / 2
+                if inside && h.span.latitudeDelta <= v.span.latitudeDelta * 2.6 { return }
+            }
+            map.removeOverlays(map.overlays)
+            heatRegion = nil
+            guard let stations, !stations.isEmpty else { return }
+            let region = MKCoordinateRegion(center: v.center,
+                                            span: MKCoordinateSpan(latitudeDelta: min(v.span.latitudeDelta * 1.6, 170),
+                                                                   longitudeDelta: min(v.span.longitudeDelta * 1.6, 350)))
+            heatRegion = region
+            map.addOverlay(HeatOverlay(stations: stations, region: region), level: .aboveRoads)
+        }
+
         func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+            refreshHeat(mapView)
             let r = mapView.region
             onRegionChange?(Coordinate(latitude: r.center.latitude, longitude: r.center.longitude), r.span.latitudeDelta / 2)
         }

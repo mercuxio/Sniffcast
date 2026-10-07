@@ -4,6 +4,11 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.3] — 2026-10-07
+
+### Changed
+- The heat map now re-renders for the visible area as you zoom and pan, so it stays sharp when zoomed in and keeps covering the map when zoomed out, blending smoothly between stations.
+
 ## [1.6.2] — 2026-10-07
 
 ### Changed
