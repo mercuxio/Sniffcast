@@ -4,6 +4,11 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] — 2026-10-07
+
+### Changed
+- The map in the panel can now be zoomed and panned in place (zoom controls, pinch and scroll). Clicking it no longer opens a browser page.
+
 ## [1.6.0] — 2026-10-07
 
 ### Added

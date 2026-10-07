@@ -64,10 +64,3 @@ import Testing
         #expect(snap.applying(station: StationFeed(name: "K", aqi: 60)).air?.aqi(.us) == 60)
     }
 }
-
-@Suite struct FullMapURLTests {
-    @Test func centresOnTheLocation() {
-        let url = AQIMap.fullMapURL(latitude: 3.139, longitude: 101.687)
-        #expect(url.absoluteString == "https://waqi.info/#/c/3.139/101.687/9z")
-    }
-}

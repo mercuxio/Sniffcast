@@ -17,11 +17,6 @@ struct StationFeed: Equatable, Sendable {
 /// WAQI parsing and the interpolation behind the panel's AQI heat map. Pure, so it is testable.
 enum AQIMap {
     static let attribution = "Data © waqi.info"
-    /// The full interactive WAQI map, centred on the location.
-    static func fullMapURL(latitude: Double, longitude: Double) -> URL {
-        URL(string: String(format: "https://waqi.info/#/c/%.3f/%.3f/9z", latitude, longitude))!
-    }
-
     static let tokenRequestURL = URL(string: "https://aqicn.org/data-platform/token/")!
 
     // MARK: Parsing

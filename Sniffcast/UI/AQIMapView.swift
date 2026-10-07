@@ -132,10 +132,10 @@ struct AQIMapView: NSViewRepresentable {
         let map = MKMapView()
         map.isRotateEnabled = false
         map.isPitchEnabled = false
-        map.showsZoomControls = false
+        map.showsZoomControls = true
+        map.isZoomEnabled = true
+        map.isScrollEnabled = true
         map.delegate = context.coordinator
-        map.addGestureRecognizer(NSClickGestureRecognizer(target: context.coordinator,
-                                                          action: #selector(Coordinator.openFullMap)))
         map.preferredConfiguration = MKStandardMapConfiguration(elevationStyle: .flat, emphasisStyle: .muted)
         return map
     }
@@ -175,11 +175,6 @@ struct AQIMapView: NSViewRepresentable {
     final class Coordinator: NSObject, MKMapViewDelegate {
         var center: CLLocationCoordinate2D?
         var stations: [StationReading]?
-
-        @objc func openFullMap() {
-            guard let c = center else { return }
-            NSWorkspace.shared.open(AQIMap.fullMapURL(latitude: c.latitude, longitude: c.longitude))
-        }
 
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
             guard let station = annotation as? StationAnnotation else {
@@ -236,6 +231,6 @@ struct AQIMapSection: View {
     private var caption: String {
         if loaded && stations.isEmpty { return "No stations nearby, or the token was not accepted · \(AQIMap.attribution)" }
         let station = stationName.flatMap { $0.isEmpty ? nil : "AQI from \($0) · " } ?? ""
-        return station + AQIMap.attribution + " · Click map to enlarge"
+        return station + AQIMap.attribution
     }
 }
