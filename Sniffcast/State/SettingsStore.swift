@@ -9,6 +9,7 @@ final class SettingsStore {
         static let style = "menubarStyle", interval = "refreshInterval", temperature = "temperatureUnit"
         static let wind = "windUnit", scale = "aqiScale", alerts = "alertsEnabled", threshold = "alertThreshold"
         static let monochrome = "aqiMonochrome", moonPartlyCloudy = "moonPhaseOnPartlyCloudy"
+        static let waqiToken = "waqiToken"
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -28,6 +29,8 @@ final class SettingsStore {
     var aqiMonochrome: Bool { didSet { defaults.set(aqiMonochrome, forKey: Key.monochrome) } }
     /// Partly cloudy nights show the moon's phase too, not only clear ones.
     var moonPhaseOnPartlyCloudy: Bool { didSet { defaults.set(moonPhaseOnPartlyCloudy, forKey: Key.moonPartlyCloudy) } }
+    /// The user's own free WAQI token; the AQI map shows only when it is set.
+    var waqiToken: String { didSet { defaults.set(waqiToken, forKey: Key.waqiToken) } }
     var alertsEnabled: Bool { didSet { defaults.set(alertsEnabled, forKey: Key.alerts) } }
     var alertThreshold: Int { didSet { defaults.set(alertThreshold, forKey: Key.threshold) } }
 
@@ -52,6 +55,7 @@ final class SettingsStore {
         aqiScale = scale
         aqiMonochrome = defaults.bool(forKey: Key.monochrome)
         moonPhaseOnPartlyCloudy = defaults.bool(forKey: Key.moonPartlyCloudy)
+        waqiToken = defaults.string(forKey: Key.waqiToken) ?? ""
         alertsEnabled = defaults.bool(forKey: Key.alerts)
         alertThreshold = (defaults.object(forKey: Key.threshold) as? Int) ?? AQIScale.defaultThreshold(scale)
 

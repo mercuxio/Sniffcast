@@ -28,6 +28,7 @@ struct ForecastResponse: Decodable, Sendable {
         var uv_index_max: [Double?]?
     }
     var latitude: Double?
+    var longitude: Double?
     var timezone: String?
     var utc_offset_seconds: Int?
     var current: Current

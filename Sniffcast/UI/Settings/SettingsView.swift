@@ -64,6 +64,15 @@ private struct GeneralSettings: View {
                 .pickerStyle(.segmented)
             }
 
+            Section("AQI map") {
+                SecureField("WAQI token", text: $settings.waqiToken, prompt: Text("Paste token to show a map"))
+                HStack {
+                    Text("Adds a live AQI map to the panel. Tiles load from tiles.aqicn.org with your token.")
+                    Link("Get a free token", destination: AQIMap.tokenRequestURL)
+                }
+                .font(.caption).foregroundStyle(.secondary)
+            }
+
             Section {
                 Toggle("Launch at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in

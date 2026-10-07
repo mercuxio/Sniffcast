@@ -31,6 +31,8 @@ struct Snapshot: Equatable, Sendable {
     var daily: [DailyPoint]
     /// Nil when the air-quality request failed.
     var air: AirQuality?
+    /// Of the grid point Open-Meteo answered for; places the AQI map.
+    var longitude: Double?
 }
 
 struct CurrentConditions: Equatable, Sendable {

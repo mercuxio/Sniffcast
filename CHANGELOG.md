@@ -4,6 +4,11 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] — 2026-10-07
+
+### Added
+- An AQI map in the panel: a small map centred on the location with live AQI colours from WAQI (aqicn.org) over it, worldwide. It needs a free WAQI token, pasted in Settings → General → AQI map; with no token the map stays hidden and nothing else changes. Tiles load from `tiles.aqicn.org` using your token (the base map comes from Apple Maps), and the map carries the required "Air Quality Tiles © waqi.info" credit.
+
 ## [1.3.1] — 2026-10-02
 
 ### Changed
