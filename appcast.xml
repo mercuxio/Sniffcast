@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Sniffcast</title>
+    <item>
+      <title>Sniffcast 1.7.0</title>
+      <pubDate>Wed, 07 Oct 2026 06:56:08 +0000</pubDate>
+      <sparkle:version>22</sparkle:version>
+      <sparkle:shortVersionString>1.7.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>https://github.com/mercuxio/Sniffcast/releases/tag/v1.7.0</sparkle:releaseNotesLink>
+      <enclosure url="https://github.com/mercuxio/Sniffcast/releases/download/v1.7.0/Sniffcast-1.7.0.zip" type="application/octet-stream" sparkle:edSignature="cg5aOlDOT8bcJLZUTYDdS1IKbdl9QeHIOrICFB5xNQeu6mtP3AAZsZ3XdYybhwba5nP+OBnokIckfOAOruOrAA==" length="3758028"/>
+    </item>
+  </channel>
+</rss>

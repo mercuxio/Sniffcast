@@ -4,6 +4,14 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] — 2026-10-07
+
+### Added
+- Automatic updates through Sparkle: Sniffcast checks GitHub for new releases, verifies each download's signature, and installs it. Settings → General → Updates has a "Check for Updates…" button and a switch for automatic checks.
+
+### Note
+- Earlier versions can't update themselves, so install 1.7.0 by hand once; later versions arrive in-app.
+
 ## [1.6.3] — 2026-10-07
 
 ### Changed

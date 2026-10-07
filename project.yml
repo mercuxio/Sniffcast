@@ -13,21 +13,31 @@ settings:
     DEVELOPMENT_TEAM: ""
     ENABLE_HARDENED_RUNTIME: YES
     SWIFT_STRICT_CONCURRENCY: complete
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.0
 targets:
   Sniffcast:
     type: application
     platform: macOS
     sources:
       - Sniffcast
+    dependencies:
+      - package: Sparkle
     info:
       path: Sniffcast/Info.plist
       properties:
         CFBundleDisplayName: Sniffcast
         CFBundleIconFile: AppIcon
         CFBundleIconName: AppIcon
-        CFBundleShortVersionString: "1.6.3"
-        CFBundleVersion: "21"
+        CFBundleShortVersionString: "1.7.0"
+        CFBundleVersion: "22"
         LSUIElement: true
+        SUFeedURL: https://raw.githubusercontent.com/mercuxio/Sniffcast/main/appcast.xml
+        SUPublicEDKey: 10VIpTMQm9DmV5p6kNgsHBI3Fwd06CSUKhUM8HMhbis=
+        SUEnableInstallerLauncherService: true
+        SUEnableAutomaticChecks: true
         LSApplicationCategoryType: public.app-category.weather
         NSLocationUsageDescription: Sniffcast uses your approximate location to show local weather and air quality.
         NSLocationWhenInUseUsageDescription: Sniffcast uses your approximate location to show local weather and air quality.
@@ -38,6 +48,12 @@ targets:
         com.apple.security.app-sandbox: true
         com.apple.security.network.client: true
         com.apple.security.personal-information.location: true
+        # The app is ad-hoc signed, so the embedded Sparkle framework can't share its team ID.
+        com.apple.security.cs.disable-library-validation: true
+        # Sparkle's installer runs as XPC services reached by these names (sandboxed apps only).
+        com.apple.security.temporary-exception.mach-lookup.global-name:
+          - com.houlanyit.Sniffcast-spks
+          - com.houlanyit.Sniffcast-spki
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.houlanyit.Sniffcast

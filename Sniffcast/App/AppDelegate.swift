@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var scheduler = RefreshScheduler(
         state: state, settings: settings, locations: locations, provider: provider, alerts: alerts)
     private let locationProvider = LocationProvider()
+    private let updater = Updater()
 
     private var statusItem: StatusItemController?
     private var popover: PopoverController?
@@ -37,7 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         settingsWindow = SettingsWindowController { [unowned self] navigation in
             AnyView(SettingsView(navigation: navigation, settings: settings, locations: locations,
-                                 alerts: alerts, state: state, provider: provider))
+                                 alerts: alerts, state: state, provider: provider, updater: updater))
         }
 
         scheduler.start()

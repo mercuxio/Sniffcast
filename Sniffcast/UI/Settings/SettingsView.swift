@@ -7,10 +7,11 @@ struct SettingsView: View {
     let alerts: AlertService
     let state: AppState
     let provider: WeatherProviding
+    let updater: Updater
 
     var body: some View {
         TabView(selection: $navigation.tab) {
-            GeneralSettings(settings: settings)
+            GeneralSettings(settings: settings, updater: updater)
                 .tabItem { Label("General", systemImage: "gearshape") }
                 .tag(SettingsTab.general)
             LocationsSettings(locations: locations, state: state, provider: provider)
@@ -29,6 +30,7 @@ struct SettingsView: View {
 
 private struct GeneralSettings: View {
     @Bindable var settings: SettingsStore
+    @Bindable var updater: Updater
     @State private var launchAtLogin = LoginItem.isEnabled
     @State private var loginError: String?
 
@@ -87,14 +89,18 @@ private struct GeneralSettings: View {
                 if let loginError { Text(loginError).font(.caption).foregroundStyle(.red) }
             }
 
-            Section {
+            Section("Updates") {
+                Toggle("Check for updates automatically", isOn: $updater.automaticallyChecks)
                 HStack {
-                    Text("Sniffcast \(Self.version)")
-                        .foregroundStyle(.secondary)
+                    Text("Sniffcast \(Self.version)").foregroundStyle(.secondary)
                     Spacer()
-                    Link("Weather data by Open-Meteo.com (CC BY 4.0)", destination: URL(string: "https://open-meteo.com/")!)
+                    Button("Check for Updates…") { updater.checkForUpdates() }
                 }
-                .font(.caption)
+            }
+
+            Section {
+                Link("Weather data by Open-Meteo.com (CC BY 4.0)", destination: URL(string: "https://open-meteo.com/")!)
+                    .font(.caption)
             }
         }
         .formStyle(.grouped)
