@@ -21,6 +21,7 @@ final class RefreshScheduler {
     private var installedInterval: RefreshInterval?
     private var lastTarget: LocationTarget?
     private var fetchTask: Task<Void, Never>?
+    private var tokenDebounce: Task<Void, Never>?
     private var online = true
     /// The network came back while a fetch was in flight, which likely failed for want of it.
     private var retryOnFailure = false
@@ -42,6 +43,15 @@ final class RefreshScheduler {
         observe { [settings] in settings.refreshInterval } apply: { [weak self] interval in
             guard let self, interval != installedInterval else { return }
             installPeriodic(interval)
+        }
+        observe { [settings] in settings.waqiToken } apply: { [weak self] token in
+            // Pasting a token should take effect now, not at the next scheduled refresh.
+            guard let self, !token.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+            tokenDebounce?.cancel()
+            tokenDebounce = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(1.5))
+                if !Task.isCancelled { self?.refreshNow() }
+            }
         }
         observe { [locations, state] in
             locations.target(currentCoordinate: state.currentCoordinate,
@@ -144,10 +154,16 @@ final class RefreshScheduler {
         }
         state.isFetching = true
         let provider = self.provider
+        let token = settings.waqiToken
         fetchTask = Task { [weak self] in
             let result: Result<Snapshot, any Error>
             do {
-                result = .success(try await provider.fetch(target.coordinate))
+                var snapshot = try await provider.fetch(target.coordinate)
+                // With a WAQI token, the nearest real station replaces the model's US AQI.
+                if let station = await WAQIClient().nearest(to: target.coordinate, token: token) {
+                    snapshot = snapshot.applying(station: station)
+                }
+                result = .success(snapshot)
             } catch {
                 result = .failure(error)
             }

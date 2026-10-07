@@ -16,7 +16,7 @@ silicon and Intel.
 
 ## Install
 
-**Download the release.** Get `Sniffcast-1.4.0.zip` from
+**Download the release.** Get `Sniffcast-1.5.0.zip` from
 [Releases](https://github.com/mercuxio/Sniffcast/releases), unzip it, and drag
 `Sniffcast.app` into `/Applications`.
 
@@ -75,7 +75,7 @@ a crash.
 
 ### Settings
 
-- **AQI map**: paste a free [WAQI token](https://aqicn.org/data-platform/token/) to show a live AQI map in the panel. With a token set, the app also loads tiles from `tiles.aqicn.org` (sent with your token) and the base map from Apple Maps.
+- **AQI map**: paste a free [WAQI token](https://aqicn.org/data-platform/token/) to show an AQI heat map in the panel, built from nearby WAQI stations, and to use the nearest station's AQI (US scale) as the headline number. With a token set, the app also queries `api.waqi.info` (sent with your token) and loads the base map from Apple Maps.
 - **Menubar style**: Full, Three Rows, Compact, or Rotating.
 - **Color-code AQI in menubar**: on by default.
 - **Show moon phase on partly cloudy nights**: off by default, so only clear
@@ -184,7 +184,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Status
 
-Version 1.4.0. The test suite passes, and the app is in daily use against live
+Version 1.5.0. The test suite passes, and the app is in daily use against live
 Open-Meteo data.
 
 Releases include an ad-hoc signed `Sniffcast.app` in a zip; see

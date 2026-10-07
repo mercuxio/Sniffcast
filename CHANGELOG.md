@@ -4,6 +4,15 @@ All notable changes to Sniffcast are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] — 2026-10-07
+
+### Added
+- The AQI map is now a heat map: station readings from WAQI are blended into a smooth colour field in the AQI band colours, fading out where no station is close.
+- With a WAQI token, the headline AQI (menu bar, current card, alerts) comes from the nearest WAQI station on the US scale, so it matches the map. The European scale, hourly dots and pollutant values stay on the Open-Meteo model, and without a token (or if WAQI fails) everything falls back to the model.
+
+### Fixed
+- Pasting into the WAQI token field in Settings did nothing, because a menu bar app has no Edit menu. A hidden one now provides ⌘V, ⌘C, ⌘X, ⌘A and undo.
+
 ## [1.4.0] — 2026-10-07
 
 ### Added

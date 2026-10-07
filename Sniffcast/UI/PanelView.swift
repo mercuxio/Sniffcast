@@ -27,9 +27,10 @@ struct PanelView: View {
                         Divider()
                         PollutantGrid(pollutants: air.pollutants)
                     }
-                    if let lon = snapshot.longitude, let template = AQIMap.tileTemplate(token: settings.waqiToken) {
+                    if let lon = snapshot.longitude, !settings.waqiToken.trimmingCharacters(in: .whitespaces).isEmpty {
                         Divider()
-                        AQIMapSection(latitude: snapshot.latitude, longitude: lon, tileTemplate: template)
+                        AQIMapSection(latitude: snapshot.latitude, longitude: lon, token: settings.waqiToken,
+                                      stationName: snapshot.air?.stationName)
                     }
                     if !snapshot.hourly.isEmpty {
                         Divider()

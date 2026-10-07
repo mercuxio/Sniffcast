@@ -75,8 +75,11 @@ struct AirQuality: Equatable, Sendable {
     var usAQI: Int?
     var euAQI: Int?
     var pollutants: Pollutants
+    /// The nearest WAQI station's US AQI, when the user has a token; preferred over the model.
+    var stationUS: Int? = nil
+    var stationName: String? = nil
 
-    func aqi(_ scale: AQIScaleKind) -> Int? { scale == .us ? usAQI : euAQI }
+    func aqi(_ scale: AQIScaleKind) -> Int? { scale == .us ? (stationUS ?? usAQI) : euAQI }
 }
 
 /// Concentrations in μg/m³.

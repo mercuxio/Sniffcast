@@ -21,6 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var settingsWindow: SettingsWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        installEditMenu()
         wireLocation()
 
         let popover = PopoverController { [unowned self] in AnyView(self.panel()) }
@@ -79,5 +80,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 popover?.close()
                 NSWorkspace.shared.open(Self.locationPrivacyURL)
             }))
+    }
+
+    /// An accessory app has no menu bar of its own, so the standard editing shortcuts (⌘V, ⌘C,
+    /// ⌘X, ⌘A, ⌘Z) have nothing to dispatch to and text fields, such as the token field in
+    /// Settings, can't be pasted into. A main menu with an Edit menu restores them; it is never
+    /// shown because the app stays out of the menu bar and Dock.
+    private func installEditMenu() {
+        let edit = NSMenu(title: "Edit")
+        edit.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
+        let redo = edit.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "z")
+        redo.keyEquivalentModifierMask = [.command, .shift]
+        edit.addItem(.separator())
+        edit.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        edit.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        edit.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        edit.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+
+        let editItem = NSMenuItem(title: "Edit", action: nil, keyEquivalent: "")
+        editItem.submenu = edit
+        let main = NSMenu()
+        main.addItem(NSMenuItem(title: "", action: nil, keyEquivalent: ""))
+        main.addItem(editItem)
+        NSApp.mainMenu = main
     }
 }
