@@ -49,7 +49,7 @@ private final class HeatOverlay: NSObject, MKOverlay {
                 guard let v = AQIMap.interpolate(latitude: c.latitude, longitude: c.longitude, stations: stations)
                 else { continue }
                 let color = Self.color(forAQI: v.aqi)
-                let alpha = 0.55 * v.confidence
+                let alpha = 0.34 * v.confidence
                 let i = (row * columns + col) * 4
                 // Premultiplied RGBA.
                 pixels[i] = UInt8(color.redComponent * alpha * 255)
@@ -88,6 +88,38 @@ private final class HeatRenderer: MKOverlayRenderer {
     }
 }
 
+private final class StationAnnotation: NSObject, MKAnnotation {
+    let coordinate: CLLocationCoordinate2D
+    let aqi: Int
+    let title: String?
+    init(_ s: StationReading) {
+        coordinate = CLLocationCoordinate2D(latitude: s.latitude, longitude: s.longitude)
+        aqi = s.aqi
+        title = s.name
+    }
+}
+
+/// A small coloured badge carrying a station's AQI number.
+private func stationBadge(aqi: Int) -> NSImage {
+    let text = "\(aqi)"
+    let attrs: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: 9, weight: .bold),
+                                                .foregroundColor: NSColor.white]
+    let size = (text as NSString).size(withAttributes: attrs)
+    let w = max(size.width + 8, 20), h: CGFloat = 15
+    return NSImage(size: NSSize(width: w, height: h), flipped: false) { rect in
+        let fill = AQIColors.nsColor(AQIScale.band(for: aqi, scale: .us)).usingColorSpace(.sRGB) ?? .gray
+        let path = NSBezierPath(roundedRect: rect.insetBy(dx: 0.5, dy: 0.5), xRadius: h / 2, yRadius: h / 2)
+        fill.withAlphaComponent(0.95).setFill()
+        path.fill()
+        NSColor.white.withAlphaComponent(0.9).setStroke()
+        path.lineWidth = 1
+        path.stroke()
+        (text as NSString).draw(at: NSPoint(x: (rect.width - size.width) / 2, y: (rect.height - size.height) / 2),
+                                withAttributes: attrs)
+        return true
+    }
+}
+
 /// A small map centred on the location with an AQI heat map over a muted base map.
 /// SwiftUI's `Map` can't take custom overlays, so this wraps `MKMapView`.
 struct AQIMapView: NSViewRepresentable {
@@ -102,6 +134,8 @@ struct AQIMapView: NSViewRepresentable {
         map.isPitchEnabled = false
         map.showsZoomControls = false
         map.delegate = context.coordinator
+        map.addGestureRecognizer(NSClickGestureRecognizer(target: context.coordinator,
+                                                          action: #selector(Coordinator.openFullMap)))
         map.preferredConfiguration = MKStandardMapConfiguration(elevationStyle: .flat, emphasisStyle: .muted)
         return map
     }
@@ -110,7 +144,7 @@ struct AQIMapView: NSViewRepresentable {
         let center = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         let coordinator = context.coordinator
         if coordinator.center?.latitude != latitude || coordinator.center?.longitude != longitude {
-            map.removeAnnotations(map.annotations)
+            map.removeAnnotations(map.annotations.filter { !($0 is StationAnnotation) })
             let pin = MKPointAnnotation()
             pin.coordinate = center
             map.addAnnotation(pin)
@@ -127,6 +161,11 @@ struct AQIMapView: NSViewRepresentable {
                                                 span: MKCoordinateSpan(latitudeDelta: halfSpanDegrees * 2, longitudeDelta: lonSpan))
                 map.addOverlay(HeatOverlay(stations: stations, region: region), level: .aboveRoads)
             }
+            map.removeAnnotations(map.annotations.filter { $0 is StationAnnotation })
+            // Only the stations that fall in the visible area, to keep the badges from crowding.
+            map.addAnnotations(stations
+                .filter { AQIMap.distanceKm(latitude, longitude, $0.latitude, $0.longitude) <= 70 }
+                .map(StationAnnotation.init))
             coordinator.stations = stations
         }
     }
@@ -136,6 +175,29 @@ struct AQIMapView: NSViewRepresentable {
     final class Coordinator: NSObject, MKMapViewDelegate {
         var center: CLLocationCoordinate2D?
         var stations: [StationReading]?
+
+        @objc func openFullMap() {
+            guard let c = center else { return }
+            NSWorkspace.shared.open(AQIMap.fullMapURL(latitude: c.latitude, longitude: c.longitude))
+        }
+
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            guard let station = annotation as? StationAnnotation else {
+                // The location pin always wins over nearby badges.
+                let pin = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: "pin")
+                pin.displayPriority = .required
+                pin.markerTintColor = .systemRed
+                return pin
+            }
+            let id = "station"
+            let view = mapView.dequeueReusableAnnotationView(withIdentifier: id)
+                ?? MKAnnotationView(annotation: station, reuseIdentifier: id)
+            view.annotation = station
+            view.image = stationBadge(aqi: station.aqi)
+            view.canShowCallout = false
+            view.displayPriority = .defaultLow
+            return view
+        }
 
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             guard let heat = overlay as? HeatOverlay else { return MKOverlayRenderer(overlay: overlay) }
@@ -162,7 +224,7 @@ struct AQIMapSection: View {
                 .frame(height: 150)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .accessibilityLabel("Heat map of air quality around this location")
-            Text(caption).font(.caption2).foregroundStyle(.tertiary)
+            Text(caption).font(.caption2).foregroundStyle(.tertiary).fixedSize(horizontal: false, vertical: true)
         }
         .task(id: "\(latitude),\(longitude),\(token)") {
             stations = await WAQIClient().stations(around: Coordinate(latitude: latitude, longitude: longitude),
@@ -174,6 +236,6 @@ struct AQIMapSection: View {
     private var caption: String {
         if loaded && stations.isEmpty { return "No stations nearby, or the token was not accepted · \(AQIMap.attribution)" }
         let station = stationName.flatMap { $0.isEmpty ? nil : "AQI from \($0) · " } ?? ""
-        return station + AQIMap.attribution
+        return station + AQIMap.attribution + " · Click map to enlarge"
     }
 }
